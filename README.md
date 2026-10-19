@@ -2,7 +2,13 @@
 
 一个面向 Windows 小狼毫（Rime / Weasel）的图形化配置面板。目标是让常用设置不再需要手改 YAML，同时保留 Rime 原生的 `*.custom.yaml` 补丁机制。
 
-当前版本是一个可运行的 MVP，已在本机 Weasel 0.17.4 + .NET 10 上验证。
+当前版本（0.1.0）是一个可运行的 MVP，已在本机 Weasel 0.17.4 + .NET 10 上验证。
+
+## 下载与安装
+
+- **安装版**：从 [Releases](https://github.com/baipiao5555/weasel-studio/releases/latest) 下载 `WeaselStudio-Setup-0.1.0.exe`。按当前用户安装，不需要管理员权限；默认安装到 `%LOCALAPPDATA%\Programs\WeaselStudio`，会创建开始菜单快捷方式，桌面快捷方式可选。卸载不会删除 `%APPDATA%\Rime` 里的配置和备份。
+- **便携版**：下载 `WeaselStudio-Portable-0.1.0.exe`，双击直接运行，不写安装目录和注册表。
+- 系统要求：Windows 10 / 11 x64。
 
 ## 功能
 
@@ -56,6 +62,17 @@ dotnet publish WeaselStudio.csproj -c Release -r win-x64 --self-contained true `
 
 输出在 `publish\WeaselStudio.exe`。也可直接运行仓库根目录的 `publish-win-x64.bat`。
 
+## 构建安装器
+
+先完成上面的单文件发布，然后用 NSIS 3.13+ 编译：
+
+```powershell
+$env:NSIS_EXE = "C:\path\to\makensis.exe"
+installer\build-installer.bat
+```
+
+输出 `publish\WeaselStudio-Setup-0.1.0.exe`。安装脚本在 `installer\WeaselStudio.nsi`，按用户安装、不需要管理员权限。
+
 ## 测试
 
 `tests/CoreTests` 是一个不依赖 UI 的控制台测试，覆盖：
@@ -93,6 +110,8 @@ weasel-studio/
     ShellService.cs                打开目录（ShellExecute）
   ViewModels/                      四个页面 + 主窗口 ViewModel
   Views/                           四个页面的 XAML
+  Assets/                          应用图标
+  installer/                       NSIS 安装脚本
   tests/CoreTests/                 控制台测试
 ```
 
