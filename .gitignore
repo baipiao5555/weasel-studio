@@ -1,0 +1,13 @@
+bin/
+obj/
+publish/
+.vs/
+.mimosa/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+tests/**/bin/
+tests/**/obj/
+shot-*.png
+screenshot*.png

@@ -1,0 +1,123 @@
+using System.IO;
+using WeaselStudio.Services;
+
+var failures = 0;
+var checks = 0;
+
+void Check(string name, bool condition, string? detail = null)
+{
+    checks++;
+    if (condition)
+    {
+        Console.WriteLine($"PASS  {name}");
+    }
+    else
+    {
+        failures++;
+        Console.WriteLine($"FAIL  {name}{(detail is null ? "" : $"  ({detail})")}");
+    }
+}
+
+var environment = RimeEnvironment.Detect();
+Console.WriteLine($"user dir : {environment.UserDataDir}");
+Console.WriteLine($"weasel   : {environment.WeaselRoot}");
+Console.WriteLine($"deployer : {environment.DeployerPath}");
+Console.WriteLine($"version  : {environment.Version}");
+
+Check("detect user data dir", Directory.Exists(environment.UserDataDir), environment.UserDataDir);
+Check("detect deployer", File.Exists(environment.DeployerPath), environment.DeployerPath);
+
+var config = new ConfigService(environment);
+var schemas = config.LoadSchemas();
+Check("load schemas", schemas.Count > 0, $"{schemas.Count} schema files");
+Check("load enabled schemas", schemas.Any(x => x.IsEnabled),
+    string.Join(", ", schemas.Where(x => x.IsEnabled).Select(x => x.Id)));
+
+foreach (var schema in schemas.Take(3))
+    Console.WriteLine($"schema    : {schema.Id} | {schema.Name} | author={schema.Author}");
+
+var style = config.LoadStyle();
+Console.WriteLine($"style    : scheme={style.ColorScheme}, font={style.FontFace} {style.FontPoint}, horizontal={style.Horizontal}, corner={style.CornerRadius}");
+Check("load style font", !string.IsNullOrWhiteSpace(style.FontFace), style.FontFace);
+
+var schemes = config.LoadColorSchemes();
+Check("load color schemes", schemes.Count > 0, $"{schemes.Count} schemes");
+Check("selected scheme exists", schemes.Any(x => x.Id == style.ColorScheme), style.ColorScheme);
+
+var temp = Path.Combine(Path.GetTempPath(), "weasel-studio-test-" + Guid.NewGuid().ToString("N"));
+Directory.CreateDirectory(temp);
+try
+{
+    var custom = Path.Combine(temp, "weasel.custom.yaml");
+    if (File.Exists(config.WeaselCustomPath))
+        File.Copy(config.WeaselCustomPath, custom);
+    else
+        File.WriteAllText(custom, "patch:\n  # keep this comment\n  \"style/horizontal\": false\n");
+
+    var patch = new PatchFile(custom);
+    patch.SetValue("style/horizontal", "true");
+    patch.SetValue("style/color_scheme", "\"mint_dark_blue\"");
+    patch.SetValue("style/layout/corner_radius", "12");
+    patch.SetValue("style/layout/test_new_value", "42");
+    patch.Save();
+
+    var text = File.ReadAllText(custom);
+    Console.WriteLine("--- patched weasel.custom.yaml (tail) ---");
+    Console.WriteLine(string.Join(Environment.NewLine, text.Split('\n').TakeLast(12)));
+
+    Check("patch parses", YamlConfig.ParseMap(text) is not null);
+    Check("existing comment preserved", text.Contains("固定碧皓青浅色") || text.Contains("keep this comment"));
+    Check("flat value updated", text.Contains("\"style/horizontal\": true"));
+    Check("new nested path appended", text.Contains("\"style/layout/corner_radius\": 12"));
+    Check("new value appended", text.Contains("\"style/layout/test_new_value\": 42"));
+
+    var parsed = YamlConfig.ParseMap(text);
+    var patchMap = YamlConfig.Get(parsed, "patch") as Dictionary<object, object>;
+    Check("patch map exists", patchMap is not null);
+    Check("horizontal reads true", YamlConfig.AsBool(YamlConfig.GetPatch(patchMap, "style/horizontal")) == true);
+    Check("new value reads 42", YamlConfig.AsInt(YamlConfig.GetPatch(patchMap, "style/layout/test_new_value")) == 42);
+
+    patch.RemoveValue("style/layout/test_new_value");
+    patch.Save();
+    var removed = File.ReadAllText(custom);
+    Check("remove value", !removed.Contains("test_new_value"));
+
+    var nested = Path.Combine(temp, "nested.custom.yaml");
+    File.WriteAllText(nested, "patch:\n  style:\n    color_scheme: old_scheme\n    font_point: 11\n  # trailing comment\n");
+    var nestedPatch = new PatchFile(nested);
+    nestedPatch.SetValue("style/color_scheme", "\"new_scheme\"");
+    nestedPatch.SetValue("style/font_point", "13");
+    nestedPatch.Save();
+    var nestedText = File.ReadAllText(nested);
+    Console.WriteLine("--- nested patch ---");
+    Console.WriteLine(nestedText);
+    Check("nested value updated", nestedText.Contains("color_scheme: \"new_scheme\""));
+    Check("nested numeric updated", nestedText.Contains("font_point: 13"));
+    Check("nested comment preserved", nestedText.Contains("# trailing comment"));
+    Check("nested parses", YamlConfig.ParseMap(nestedText) is not null);
+
+    var defaultCustom = Path.Combine(temp, "default.custom.yaml");
+    if (File.Exists(config.DefaultCustomPath))
+        File.Copy(config.DefaultCustomPath, defaultCustom);
+    else
+        File.WriteAllText(defaultCustom, "patch:\n  # schema list comment\n  schema_list:\n    - {schema: rime_mint}\n");
+
+    var defaultPatch = new PatchFile(defaultCustom);
+    defaultPatch.SetBlock("schema_list",
+        new[] { "- {schema: rime_mint}", "- {schema: double_pinyin}", "- {schema: melt_eng}" });
+    defaultPatch.Save();
+    var defaultText = File.ReadAllText(defaultCustom);
+    Console.WriteLine("--- default.custom.yaml ---");
+    Console.WriteLine(defaultText);
+    Check("schema block updated", defaultText.Contains("- {schema: double_pinyin}"));
+    Check("schema comment preserved", defaultText.Contains("schema list comment") || defaultText.Contains("customization"));
+    Check("schema yaml parses", YamlConfig.ParseMap(defaultText) is not null);
+}
+finally
+{
+    try { Directory.Delete(temp, true); } catch { }
+}
+
+Console.WriteLine();
+Console.WriteLine($"{checks - failures}/{checks} checks passed.");
+return failures == 0 ? 0 : 1;

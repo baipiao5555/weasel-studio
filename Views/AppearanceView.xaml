@@ -1,0 +1,377 @@
+<UserControl x:Class="WeaselStudio.Views.AppearanceView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <UserControl.Resources>
+        <DataTemplate x:Key="PreviewCandidateTemplate">
+            <Border Background="{Binding Background}"
+                    CornerRadius="6"
+                    Padding="7,4"
+                    Margin="{Binding DataContext.PreviewCandidateMargin, RelativeSource={RelativeSource AncestorType=ItemsControl}}">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="{Binding Label}"
+                               Foreground="{Binding LabelForeground}"
+                               FontFamily="{Binding DataContext.PreviewFontFamily, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                               FontSize="{Binding DataContext.PreviewFontSize, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                               Margin="0,0,7,0"
+                               VerticalAlignment="Center" />
+                    <TextBlock Text="{Binding Text}"
+                               Foreground="{Binding Foreground}"
+                               FontFamily="{Binding DataContext.PreviewFontFamily, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                               FontSize="{Binding DataContext.PreviewFontSize, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                               VerticalAlignment="Center" />
+                    <TextBlock Text="{Binding Comment}"
+                               Foreground="{Binding CommentForeground}"
+                               FontFamily="{Binding DataContext.PreviewFontFamily, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                               FontSize="11"
+                               Margin="7,0,0,0"
+                               VerticalAlignment="Center" />
+                </StackPanel>
+            </Border>
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Grid Margin="0,0,0,16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                <Border Background="#FEF3C7"
+                        CornerRadius="9"
+                        Padding="8,3"
+                        Margin="0,0,10,0"
+                        VerticalAlignment="Center"
+                        Visibility="{Binding IsDirty, Converter={StaticResource BoolToVisibility}}">
+                    <TextBlock Text="未保存" Foreground="#B45309" FontSize="11" />
+                </Border>
+                <Button Content="重新加载"
+                        Style="{StaticResource SecondaryButton}"
+                        Command="{Binding ReloadCommand}" />
+                <Button Content="保存"
+                        Style="{StaticResource SecondaryButton}"
+                        Command="{Binding SaveCommand}"
+                        Margin="8,0,0,0" />
+                <Button Content="保存并部署"
+                        Style="{StaticResource PrimaryButton}"
+                        Command="{Binding SaveAndDeployCommand}"
+                        Margin="8,0,0,0" />
+            </StackPanel>
+        </Grid>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1.12*" />
+                <ColumnDefinition Width="0.88*" />
+            </Grid.ColumnDefinitions>
+
+            <ScrollViewer Grid.Column="0"
+                          VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled"
+                          Margin="0,0,12,0">
+                <StackPanel Margin="0,0,4,24">
+                    <Border Style="{StaticResource CardStyle}">
+                        <StackPanel>
+                            <TextBlock Text="配色" Style="{StaticResource SectionTitleText}" />
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="14" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="浅色方案" Style="{StaticResource FieldLabelText}" />
+                                    <ComboBox ItemsSource="{Binding ColorSchemes}"
+                                              DisplayMemberPath="DisplayName"
+                                              SelectedValuePath="Id"
+                                              SelectedValue="{Binding SelectedColorSchemeId, Mode=TwoWay}"
+                                              MinHeight="34" />
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="深色方案" Style="{StaticResource FieldLabelText}" />
+                                    <ComboBox ItemsSource="{Binding DarkColorSchemes}"
+                                              DisplayMemberPath="DisplayName"
+                                              SelectedValuePath="Id"
+                                              SelectedValue="{Binding SelectedDarkColorSchemeId, Mode=TwoWay}"
+                                              MinHeight="34" />
+                                </StackPanel>
+                            </Grid>
+
+                            <StackPanel Orientation="Horizontal" Margin="0,14,0,0">
+                                <Border Width="34" Height="22" CornerRadius="6"
+                                        Background="{Binding PreviewBackground}"
+                                        BorderBrush="{StaticResource LineBrush}"
+                                        BorderThickness="1"
+                                        ToolTip="背景" />
+                                <Border Width="34" Height="22" CornerRadius="6"
+                                        Background="{Binding PreviewText}"
+                                        Margin="8,0,0,0"
+                                        ToolTip="文字" />
+                                <Border Width="34" Height="22" CornerRadius="6"
+                                        Background="{Binding PreviewAccent}"
+                                        Margin="8,0,0,0"
+                                        ToolTip="高亮" />
+                                <TextBlock Text="当前配色取样"
+                                           Style="{StaticResource HintText}"
+                                           Margin="10,4,0,0" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource CardStyle}">
+                        <StackPanel>
+                            <TextBlock Text="布局" Style="{StaticResource SectionTitleText}" />
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="14" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="候选方向" Style="{StaticResource FieldLabelText}" />
+                                    <ComboBox ItemsSource="{Binding Directions}"
+                                              DisplayMemberPath="Label"
+                                              SelectedValuePath="Value"
+                                              SelectedValue="{Binding SelectedDirection, Mode=TwoWay}"
+                                              MinHeight="34" />
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="预编辑内容" Style="{StaticResource FieldLabelText}" />
+                                    <ComboBox ItemsSource="{Binding PreeditTypes}"
+                                              DisplayMemberPath="Label"
+                                              SelectedValuePath="Value"
+                                              SelectedValue="{Binding SelectedPreeditType, Mode=TwoWay}"
+                                              MinHeight="34" />
+                                </StackPanel>
+                            </Grid>
+
+                            <Grid Margin="0,16,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="行内预编辑" Style="{StaticResource FieldLabelText}" />
+                                    <TextBlock Text="在输入框内显示编码，而不是候选窗。"
+                                               Style="{StaticResource HintText}" />
+                                </StackPanel>
+                                <CheckBox Grid.Column="1"
+                                          Style="{StaticResource ToggleSwitch}"
+                                          IsChecked="{Binding InlinePreedit, Mode=TwoWay}"
+                                          VerticalAlignment="Center" />
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource CardStyle}">
+                        <StackPanel>
+                            <TextBlock Text="字体" Style="{StaticResource SectionTitleText}" />
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="78" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,12,12">
+                                    <TextBlock Text="主字体" Style="{StaticResource FieldLabelText}" />
+                                    <ComboBox ItemsSource="{Binding FontFamilies}"
+                                              IsEditable="True"
+                                              Text="{Binding FontFace, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                                              MinHeight="34" />
+                                </StackPanel>
+                                <StackPanel Grid.Row="0" Grid.Column="1" Margin="0,0,0,12">
+                                    <TextBlock Text="字号 (pt)" Style="{StaticResource FieldLabelText}" />
+                                    <TextBox Style="{StaticResource InputTextBox}"
+                                             Text="{Binding FontPoint, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
+                                </StackPanel>
+
+                                <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,12,12">
+                                    <TextBlock Text="标签字体" Style="{StaticResource FieldLabelText}" />
+                                    <ComboBox ItemsSource="{Binding FontFamilies}"
+                                              IsEditable="True"
+                                              Text="{Binding LabelFontFace, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                                              MinHeight="34" />
+                                </StackPanel>
+                                <StackPanel Grid.Row="1" Grid.Column="1" Margin="0,0,0,12">
+                                    <TextBlock Text="字号 (pt)" Style="{StaticResource FieldLabelText}" />
+                                    <TextBox Style="{StaticResource InputTextBox}"
+                                             Text="{Binding LabelFontPoint, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
+                                </StackPanel>
+
+                                <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,0,12,0">
+                                    <TextBlock Text="注释字体" Style="{StaticResource FieldLabelText}" />
+                                    <ComboBox ItemsSource="{Binding FontFamilies}"
+                                              IsEditable="True"
+                                              Text="{Binding CommentFontFace, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                                              MinHeight="34" />
+                                </StackPanel>
+                                <StackPanel Grid.Row="2" Grid.Column="1">
+                                    <TextBlock Text="字号 (pt)" Style="{StaticResource FieldLabelText}" />
+                                    <TextBox Style="{StaticResource InputTextBox}"
+                                             Text="{Binding CommentFontPoint, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource CardStyle}">
+                        <StackPanel>
+                            <TextBlock Text="候选窗" Style="{StaticResource SectionTitleText}" />
+                            <TextBlock Text="数值单位与 weasel.yaml 一致。"
+                                       Style="{StaticResource HintText}"
+                                       Margin="0,0,0,12" />
+
+                            <UniformGrid Columns="2">
+                                <StackPanel Margin="0,0,12,12">
+                                    <TextBlock Text="圆角半径" Style="{StaticResource FieldLabelText}" />
+                                    <TextBox Style="{StaticResource InputTextBox}"
+                                             Text="{Binding CornerRadius, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
+                                </StackPanel>
+                                <StackPanel Margin="0,0,0,12">
+                                    <TextBlock Text="边框宽度" Style="{StaticResource FieldLabelText}" />
+                                    <TextBox Style="{StaticResource InputTextBox}"
+                                             Text="{Binding BorderWidth, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
+                                </StackPanel>
+                                <StackPanel Margin="0,0,12,12">
+                                    <TextBlock Text="水平边距" Style="{StaticResource FieldLabelText}" />
+                                    <TextBox Style="{StaticResource InputTextBox}"
+                                             Text="{Binding MarginX, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
+                                </StackPanel>
+                                <StackPanel Margin="0,0,0,12">
+                                    <TextBlock Text="垂直边距" Style="{StaticResource FieldLabelText}" />
+                                    <TextBox Style="{StaticResource InputTextBox}"
+                                             Text="{Binding MarginY, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
+                                </StackPanel>
+                                <StackPanel Margin="0,0,12,12">
+                                    <TextBlock Text="编码/候选间距" Style="{StaticResource FieldLabelText}" />
+                                    <TextBox Style="{StaticResource InputTextBox}"
+                                             Text="{Binding Spacing, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
+                                </StackPanel>
+                                <StackPanel Margin="0,0,0,12">
+                                    <TextBlock Text="候选间距" Style="{StaticResource FieldLabelText}" />
+                                    <TextBox Style="{StaticResource InputTextBox}"
+                                             Text="{Binding CandidateSpacing, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
+                                </StackPanel>
+                                <StackPanel Margin="0,0,12,12">
+                                    <TextBlock Text="高亮内边距" Style="{StaticResource FieldLabelText}" />
+                                    <TextBox Style="{StaticResource InputTextBox}"
+                                             Text="{Binding HilitePadding, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
+                                </StackPanel>
+                                <StackPanel Margin="0,0,0,12">
+                                    <TextBlock Text="阴影半径" Style="{StaticResource FieldLabelText}" />
+                                    <TextBox Style="{StaticResource InputTextBox}"
+                                             Text="{Binding ShadowRadius, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
+                                </StackPanel>
+                                <StackPanel Margin="0,0,12,12">
+                                    <TextBlock Text="阴影偏移 X" Style="{StaticResource FieldLabelText}" />
+                                    <TextBox Style="{StaticResource InputTextBox}"
+                                             Text="{Binding ShadowOffsetX, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
+                                </StackPanel>
+                                <StackPanel Margin="0,0,0,12">
+                                    <TextBlock Text="阴影偏移 Y" Style="{StaticResource FieldLabelText}" />
+                                    <TextBox Style="{StaticResource InputTextBox}"
+                                             Text="{Binding ShadowOffsetY, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
+                                </StackPanel>
+                                <StackPanel Margin="0,0,12,0">
+                                    <TextBlock Text="最大高度" Style="{StaticResource FieldLabelText}" />
+                                    <TextBox Style="{StaticResource InputTextBox}"
+                                             Text="{Binding MaxHeight, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
+                                </StackPanel>
+                                <StackPanel Margin="0,0,0,0">
+                                    <TextBlock Text="最小宽度" Style="{StaticResource FieldLabelText}" />
+                                    <TextBox Style="{StaticResource InputTextBox}"
+                                             Text="{Binding MinWidth, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
+                                </StackPanel>
+                            </UniformGrid>
+
+                            <StackPanel Margin="0,12,0,0">
+                                <TextBlock Text="候选略写长度（0 表示不启用）"
+                                           Style="{StaticResource FieldLabelText}" />
+                                <TextBox Style="{StaticResource InputTextBox}"
+                                         Width="140"
+                                         HorizontalAlignment="Left"
+                                         Text="{Binding AbbreviateLength, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+
+            <Border Grid.Column="1"
+                    Style="{StaticResource CardStyle}"
+                    Margin="8,0,0,0"
+                    VerticalAlignment="Top">
+                <StackPanel>
+                    <TextBlock Text="实时预览" Style="{StaticResource SectionTitleText}" />
+                    <TextBlock Text="近似预览，实际效果以部署后为准。"
+                               Style="{StaticResource HintText}"
+                               Margin="0,0,0,12" />
+
+                    <Border Background="{Binding PreviewBackground}"
+                            BorderBrush="{Binding PreviewBorder}"
+                            BorderThickness="{Binding PreviewBorderThickness}"
+                            CornerRadius="{Binding PreviewCornerRadius}"
+                            Padding="14"
+                            MinHeight="130">
+                        <StackPanel>
+                            <TextBlock Text="ni hao"
+                                       Foreground="{Binding PreviewComment}"
+                                       FontFamily="{Binding PreviewFontFamily}"
+                                       FontSize="12"
+                                       Margin="0,0,0,8" />
+
+                            <ItemsControl ItemsSource="{Binding PreviewCandidates}"
+                                          ItemTemplate="{StaticResource PreviewCandidateTemplate}"
+                                          Visibility="{Binding IsHorizontalPreview, Converter={StaticResource BoolToVisibility}}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel Orientation="Horizontal" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                            </ItemsControl>
+
+                            <ItemsControl ItemsSource="{Binding PreviewCandidates}"
+                                          ItemTemplate="{StaticResource PreviewCandidateTemplate}"
+                                          Visibility="{Binding IsVerticalPreview, Converter={StaticResource BoolToVisibility}}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Vertical" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+
+                    <TextBlock Text="{Binding SelectedColorSchemeId, StringFormat='配色：{0}'}"
+                               Style="{StaticResource HintText}"
+                               Margin="0,12,0,0" />
+                    <TextBlock Text="{Binding StatusMessage}"
+                               Style="{StaticResource HintText}"
+                               Margin="0,8,0,0" />
+
+                    <Button Content="保存并部署"
+                            Style="{StaticResource PrimaryButton}"
+                            Command="{Binding SaveAndDeployCommand}"
+                            HorizontalAlignment="Stretch"
+                            Margin="0,16,0,0" />
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

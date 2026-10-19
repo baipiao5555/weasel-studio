@@ -1,0 +1,190 @@
+<Window x:Class="WeaselStudio.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="小狼毫设置中心"
+        Width="1180"
+        Height="780"
+        MinWidth="980"
+        MinHeight="640"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource BgBrush}"
+        FontFamily="{StaticResource AppFontFamily}"
+        TextOptions.TextFormattingMode="Display"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="224" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <Border Grid.Column="0" Background="{StaticResource SidebarBrush}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <StackPanel Margin="20,24,20,26">
+                    <StackPanel Orientation="Horizontal">
+                        <Border Width="38" Height="38" CornerRadius="10"
+                                Background="{StaticResource AccentBrush}">
+                            <TextBlock Text="狼"
+                                       Foreground="White"
+                                       FontSize="19"
+                                       FontWeight="Bold"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center" />
+                        </Border>
+                        <StackPanel Margin="10,0,0,0" VerticalAlignment="Center">
+                            <TextBlock Text="小狼毫设置中心"
+                                       Foreground="White"
+                                       FontSize="14"
+                                       FontWeight="SemiBold" />
+                            <TextBlock Text="Weasel Studio"
+                                       Foreground="#94A3B8"
+                                       FontSize="11"
+                                       Margin="0,2,0,0" />
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+
+                <StackPanel Grid.Row="1" Margin="12,0">
+                    <RadioButton Style="{StaticResource NavRadioButton}"
+                                 IsChecked="{Binding SelectedNavKey, Mode=TwoWay, Converter={StaticResource StringEquals}, ConverterParameter=dashboard}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="◉" Width="18" Margin="0,0,8,0" />
+                            <TextBlock Text="概览" />
+                        </StackPanel>
+                    </RadioButton>
+
+                    <RadioButton Style="{StaticResource NavRadioButton}"
+                                 IsChecked="{Binding SelectedNavKey, Mode=TwoWay, Converter={StaticResource StringEquals}, ConverterParameter=schemas}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="☷" Width="18" Margin="0,0,8,0" />
+                            <TextBlock Text="输入方案" />
+                        </StackPanel>
+                    </RadioButton>
+
+                    <RadioButton Style="{StaticResource NavRadioButton}"
+                                 IsChecked="{Binding SelectedNavKey, Mode=TwoWay, Converter={StaticResource StringEquals}, ConverterParameter=appearance}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="◐" Width="18" Margin="0,0,8,0" />
+                            <TextBlock Text="外观与候选窗" />
+                        </StackPanel>
+                    </RadioButton>
+
+                    <RadioButton Style="{StaticResource NavRadioButton}"
+                                 IsChecked="{Binding SelectedNavKey, Mode=TwoWay, Converter={StaticResource StringEquals}, ConverterParameter=advanced}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&lt;/&gt;" Width="18" Margin="0,0,8,0" />
+                            <TextBlock Text="高级 YAML" />
+                        </StackPanel>
+                    </RadioButton>
+                </StackPanel>
+
+                <Border Grid.Row="2"
+                        Margin="16,0,16,18"
+                        Padding="12"
+                        Background="#111C33"
+                        CornerRadius="10">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <Ellipse Width="8" Height="8"
+                                     Fill="{Binding StatusBrush}"
+                                     VerticalAlignment="Center" />
+                            <TextBlock Text="{Binding Environment.StatusText}"
+                                       Foreground="#E2E8F0"
+                                       FontSize="12"
+                                       Margin="8,0,0,0"
+                                       TextTrimming="CharacterEllipsis" />
+                        </StackPanel>
+                        <TextBlock Text="{Binding Environment.UserDataDir}"
+                                   Foreground="#64748B"
+                                   FontSize="10"
+                                   Margin="0,8,0,0"
+                                   TextTrimming="CharacterEllipsis"
+                                   ToolTip="{Binding Environment.UserDataDir}" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <Border Background="White"
+                    BorderBrush="{StaticResource LineBrush}"
+                    BorderThickness="0,0,0,1"
+                    Padding="24,16">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel>
+                        <TextBlock Text="{Binding PageTitle}"
+                                   FontSize="20"
+                                   FontWeight="SemiBold"
+                                   Foreground="{StaticResource TextBrush}" />
+                        <TextBlock Text="{Binding PageSubtitle}"
+                                   Style="{StaticResource HintText}"
+                                   Margin="0,4,0,0" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1"
+                                Orientation="Horizontal"
+                                VerticalAlignment="Center">
+                        <TextBlock Text="{Binding Environment.Version, StringFormat='Weasel {0}'}"
+                                   Style="{StaticResource HintText}"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,12,0" />
+                        <Button Content="部署配置"
+                                Style="{StaticResource PrimaryButton}"
+                                Command="{Binding DeployCommand}" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <ContentControl Grid.Row="1"
+                            Content="{Binding CurrentPage}"
+                            Margin="24" />
+
+            <Border Grid.Row="2"
+                    Background="White"
+                    BorderBrush="{StaticResource LineBrush}"
+                    BorderThickness="0,1,0,0"
+                    Padding="24,8">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding StatusMessage}"
+                                   Style="{StaticResource HintText}"
+                                   VerticalAlignment="Center" />
+                        <ProgressBar Width="120"
+                                     Height="4"
+                                     IsIndeterminate="True"
+                                     Margin="12,0,0,0"
+                                     VerticalAlignment="Center"
+                                     Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibility}}" />
+                    </StackPanel>
+
+                    <TextBlock Grid.Column="1"
+                               Text="Rime / Weasel 配置面板"
+                               Style="{StaticResource HintText}"
+                               VerticalAlignment="Center" />
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</Window>
