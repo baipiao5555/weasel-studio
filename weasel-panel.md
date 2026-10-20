@@ -1,4 +1,4 @@
-# 小狼毫内置剪贴板面板 v0.2
+# 小狼毫内置剪贴板面板 v0.3
 
 这是**修改版 Weasel**，不是 Weasel Studio 设置中心。目标是把剪贴板历史做进输入法本身，而不是做独立托盘程序。
 
@@ -6,8 +6,8 @@
 
 - 源码：https://github.com/baipiao5555/weasel/tree/clipboard-panel
 - 基于 `rime/weasel` master `82b50c9`
-- 提交：`c1c850b`
-- 版本：`0.17.4.101.c1c850b`
+- 提交：`78d7aaa`
+- 版本：`0.17.4.102.78d7aaa`
 - 修改文件：`RimeWithWeasel/RimeWithWeasel.cpp`、`include/RimeWithWeasel.h`
 - 构建：GitHub Actions MSBuild（CI lint 与编译均通过）
 - 已确认 `WeaselServer.pdb` 包含 `_ShowClipboardPanel`、`_ToggleClipboardFavorite`、`ClipboardHistoryPath` 等面板符号
@@ -17,7 +17,7 @@
 - WeaselServer 监听系统剪贴板，保存最近 100 条文本，单条上限 256 KB
 - `Ctrl+Shift+V` 打开候选窗剪贴板面板；面板打开时再按一次可关闭
 - `Up` / `Down` 选择，`Enter` 写回剪贴板并发送 `Ctrl+V`
-- 每页 8 条，`PageUp` / `PageDown` 翻页；鼠标滚轮/翻页箭头也走同一套翻页逻辑
+- 每页 8 条，`PageUp` / `PageDown` 翻页；鼠标悬停、点击、滚轮和翻页箭头在默认候选窗也生效（普通输入不受影响）
 - `1`–`8` 直接粘贴当前页对应条目
 - `Delete` 删除当前条目
 - `Tab` 只看收藏，`Ctrl+D` 收藏/取消收藏；收藏项排在最前并带 `★ 收藏` 标记
@@ -31,7 +31,7 @@
 ## 安装
 
 1. 先备份 `%APPDATA%\Rime`（至少备份 `.custom.yaml`、`custom_phrase.txt`）。
-2. 从 [Releases](https://github.com/baipiao5555/weasel-studio/releases/tag/weasel-panel-v0.2) 下载 `weasel-*.exe` 安装包。
+2. 从 [Releases](https://github.com/baipiao5555/weasel-studio/releases/tag/weasel-panel-v0.3) 下载 `weasel-*.exe` 安装包。v0.2 保留作为回退版本。
 3. 运行安装包。它会替换 Weasel 的二进制和 IME DLL，保留用户配置。
 4. 重启 WeaselServer 或重新登录。
 5. 在任意文本框里按 `Ctrl+Shift+V` 测试。
