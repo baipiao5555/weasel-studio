@@ -28,6 +28,9 @@
             <DataTemplate DataType="{x:Type vm:DictionaryViewModel}">
                 <views:DictionaryView />
             </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:ClipboardPanelViewModel}">
+                <views:ClipboardPanelView />
+            </DataTemplate>
             <DataTemplate DataType="{x:Type vm:ClipboardSyncViewModel}">
                 <views:ClipboardSyncView />
             </DataTemplate>

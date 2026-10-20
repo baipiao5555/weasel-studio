@@ -101,6 +101,14 @@
                     </RadioButton>
 
                     <RadioButton Style="{StaticResource NavRadioButton}"
+                                 IsChecked="{Binding SelectedNavKey, Mode=TwoWay, Converter={StaticResource StringEquals}, ConverterParameter=panel}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="▣" Width="18" Margin="0,0,8,0" />
+                            <TextBlock Text="内置剪贴板" />
+                        </StackPanel>
+                    </RadioButton>
+
+                    <RadioButton Style="{StaticResource NavRadioButton}"
                                  IsChecked="{Binding SelectedNavKey, Mode=TwoWay, Converter={StaticResource StringEquals}, ConverterParameter=clipboard}">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="⇄" Width="18" Margin="0,0,8,0" />

@@ -17,5 +17,5 @@ if errorlevel 1 (
 )
 
 echo.
-echo Installer output: %~dp0..\publish\WeaselStudio-Setup-0.4.0.exe
+echo Installer output: %~dp0..\publish\WeaselStudio-Setup-0.5.0.exe
 pause

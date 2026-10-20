@@ -1,0 +1,143 @@
+<UserControl x:Class="WeaselStudio.Views.ClipboardPanelView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Grid Margin="0,0,0,16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Text="这些设置写入 weasel.custom.yaml 的 clipboard/* 节点，保存后部署生效。"
+                       Style="{StaticResource HintText}"
+                       VerticalAlignment="Center" />
+
+            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                <Border Background="#FEF3C7"
+                        CornerRadius="9"
+                        Padding="8,3"
+                        Margin="0,0,10,0"
+                        VerticalAlignment="Center"
+                        Visibility="{Binding IsDirty, Converter={StaticResource BoolToVisibility}}">
+                    <TextBlock Text="未保存" Foreground="#B45309" FontSize="11" />
+                </Border>
+                <Button Content="重新加载"
+                        Style="{StaticResource SecondaryButton}"
+                        Command="{Binding ReloadCommand}" />
+                <Button Content="打开配置目录"
+                        Style="{StaticResource SecondaryButton}"
+                        Command="{Binding OpenConfigCommand}"
+                        Margin="8,0,0,0" />
+                <Button Content="保存"
+                        Style="{StaticResource SecondaryButton}"
+                        Command="{Binding SaveCommand}"
+                        Margin="8,0,0,0" />
+                <Button Content="保存并部署"
+                        Style="{StaticResource PrimaryButton}"
+                        Command="{Binding SaveAndDeployCommand}"
+                        Margin="8,0,0,0" />
+            </StackPanel>
+        </Grid>
+
+        <ScrollViewer Grid.Row="1"
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled">
+            <StackPanel Margin="0,0,4,24">
+                <Border Style="{StaticResource CardStyle}">
+                    <StackPanel>
+                        <TextBlock Text="面板开关" Style="{StaticResource SectionTitleText}" />
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="启用内置剪贴板面板"
+                                           FontSize="13"
+                                           FontWeight="SemiBold" />
+                                <TextBlock Text="关闭后不再监听剪贴板，Ctrl+Shift+V 也不会打开面板。"
+                                           Style="{StaticResource HintText}"
+                                           Margin="0,3,0,0" />
+                            </StackPanel>
+                            <CheckBox Grid.Column="1"
+                                      Style="{StaticResource ToggleSwitch}"
+                                      IsChecked="{Binding Enabled, Mode=TwoWay}"
+                                      VerticalAlignment="Center" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource CardStyle}">
+                    <StackPanel>
+                        <TextBlock Text="历史与分页" Style="{StaticResource SectionTitleText}" />
+
+                        <Grid Margin="0,0,0,16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="14" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="14" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="历史上限" Style="{StaticResource FieldLabelText}" />
+                                <TextBox Style="{StaticResource InputTextBox}"
+                                         Text="{Binding HistoryLimit, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
+                                <TextBlock Text="1–1000，默认 100。"
+                                           Style="{StaticResource HintText}"
+                                           Margin="0,6,0,0" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="每页条数" Style="{StaticResource FieldLabelText}" />
+                                <TextBox Style="{StaticResource InputTextBox}"
+                                         Text="{Binding PageSize, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
+                                <TextBlock Text="1–8，默认 8；数字键只覆盖 1–8。"
+                                           Style="{StaticResource HintText}"
+                                           Margin="0,6,0,0" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="4">
+                                <TextBlock Text="单条文本上限" Style="{StaticResource FieldLabelText}" />
+                                <TextBox Style="{StaticResource InputTextBox}"
+                                         Text="{Binding MaxTextLength, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
+                                <TextBlock Text="1024–4194304 字符，默认 262144。"
+                                           Style="{StaticResource HintText}"
+                                           Margin="0,6,0,0" />
+                            </StackPanel>
+                        </Grid>
+
+                        <TextBlock Text="历史还有 32M 字符总预算，超过时会淘汰最旧条目；图片最多 10 张。"
+                                   Style="{StaticResource HintText}" />
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource CardStyle}">
+                    <StackPanel>
+                        <TextBlock Text="快捷键" Style="{StaticResource SectionTitleText}" />
+                        <TextBox Style="{StaticResource InputTextBox}"
+                                 Text="{Binding Hotkey, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
+                        <TextBlock Text="格式示例：Control+Shift+V。支持 Ctrl/Control、Shift、Alt，加字母、数字、Space、Tab 或 Enter。"
+                                   Style="{StaticResource HintText}"
+                                   Margin="0,6,0,0" />
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource CardStyle}">
+                    <StackPanel>
+                        <TextBlock Text="状态" Style="{StaticResource SectionTitleText}" />
+                        <TextBlock Text="{Binding StatusMessage}"
+                                   Style="{StaticResource HintText}" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

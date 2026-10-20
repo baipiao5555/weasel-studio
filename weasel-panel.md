@@ -59,6 +59,7 @@ patch:
 - `max_text_length`：1024–4194304，默认 262144
 - `hotkey`：至少包含一个修饰键；支持 `Ctrl`/`Control`、`Shift`、`Alt`，加一个字母、数字或 `Space`/`Tab`/`Enter`
 - 改完运行“重新部署”或重启 WeaselServer 生效
+- 也可以用 Weasel Studio 0.5.0 的“内置剪贴板”页面编辑这些值，不需要手写 YAML
 
 ## 安装
 
@@ -84,7 +85,7 @@ patch:
 - 粘贴通过 `SendInput` 发送 `Ctrl+V`；管理员权限应用可能拒绝。
 - `Ctrl+Shift+V` 可能与部分应用的“粘贴为纯文本”快捷键冲突；可在 `clipboard/hotkey` 里改。
 - `Ctrl+Shift+Delete` 清空历史时会同时清空收藏。
-- 配置目前只能手改 `weasel.custom.yaml`，Weasel Studio 还没有对应的设置页。
+- 内置剪贴板配置页需要 Weasel Studio 0.5.0 或更新版本；旧版仍需手改 `weasel.custom.yaml`。
 - 历史总字符预算 32M，超过会淘汰最旧条目；单条上限 4M 不代表能同时保留很多条。
 - 历史仍是明文存储；敏感过滤依赖应用主动设置 Windows 剪贴板排除标记，未标记的内容仍会被记录。
 - 安装包未签名，SmartScreen 可能提示“未知发布者”。
