@@ -2,7 +2,8 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:WeaselStudio.ViewModels"
-             xmlns:views="clr-namespace:WeaselStudio.Views">
+             xmlns:views="clr-namespace:WeaselStudio.Views"
+             ShutdownMode="OnExplicitShutdown">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -26,6 +27,9 @@
             </DataTemplate>
             <DataTemplate DataType="{x:Type vm:DictionaryViewModel}">
                 <views:DictionaryView />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:ClipboardSyncViewModel}">
+                <views:ClipboardSyncView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type vm:AppearanceViewModel}">
                 <views:AppearanceView />

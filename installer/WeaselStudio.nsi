@@ -5,7 +5,7 @@ ManifestDPIAware true
 !include "x64.nsh"
 
 !define APP_NAME "小狼毫设置中心"
-!define APP_VERSION "0.3.0"
+!define APP_VERSION "0.4.0"
 !define APP_PUBLISHER "baipiao5555"
 !define APP_EXE "WeaselStudio.exe"
 !define APP_REG_KEY "Software\WeaselStudio"
@@ -107,6 +107,7 @@ Section "Uninstall"
   Delete "$INSTDIR\Uninstall.exe"
   RMDir "$INSTDIR"
 
+  DeleteRegValue HKCU "Software\Microsoft\Windows\CurrentVersion\Run" "WeaselStudio"
   DeleteRegKey HKCU "${APP_UNINSTALL_KEY}"
   DeleteRegKey HKCU "${APP_REG_KEY}"
 

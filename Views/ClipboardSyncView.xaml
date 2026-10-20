@@ -1,0 +1,242 @@
+<UserControl x:Class="WeaselStudio.Views.ClipboardSyncView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Grid Margin="0,0,0,16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Text="只同步文本剪贴板；图片和文件后续再做。"
+                       Style="{StaticResource HintText}"
+                       VerticalAlignment="Center" />
+
+            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                <Border Background="#FEF3C7"
+                        CornerRadius="9"
+                        Padding="8,3"
+                        Margin="0,0,10,0"
+                        VerticalAlignment="Center"
+                        Visibility="{Binding IsDirty, Converter={StaticResource BoolToVisibility}}">
+                    <TextBlock Text="未保存" Foreground="#B45309" FontSize="11" />
+                </Border>
+                <Button Content="重新加载"
+                        Style="{StaticResource SecondaryButton}"
+                        Command="{Binding ReloadCommand}" />
+                <Button Content="测试连接"
+                        Style="{StaticResource SecondaryButton}"
+                        Command="{Binding TestConnectionCommand}"
+                        Margin="8,0,0,0" />
+                <Button Content="立即同步"
+                        Style="{StaticResource SecondaryButton}"
+                        Command="{Binding SyncNowCommand}"
+                        Margin="8,0,0,0" />
+                <Button Content="保存并启动"
+                        Style="{StaticResource PrimaryButton}"
+                        Command="{Binding SaveCommand}"
+                        Margin="8,0,0,0" />
+            </StackPanel>
+        </Grid>
+
+        <ScrollViewer Grid.Row="1"
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled">
+            <StackPanel Margin="0,0,4,24">
+                <Border Style="{StaticResource CardStyle}">
+                    <StackPanel>
+                        <TextBlock Text="同步开关" Style="{StaticResource SectionTitleText}" />
+
+                        <Grid Margin="0,0,0,16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="启用剪贴板同步"
+                                           FontSize="13"
+                                           FontWeight="SemiBold" />
+                                <TextBlock Text="关闭后会停止后台轮询和本地上传。"
+                                           Style="{StaticResource HintText}"
+                                           Margin="0,3,0,0" />
+                            </StackPanel>
+                            <CheckBox Grid.Column="1"
+                                      Style="{StaticResource ToggleSwitch}"
+                                      IsChecked="{Binding Enabled, Mode=TwoWay}"
+                                      VerticalAlignment="Center" />
+                        </Grid>
+
+                        <TextBlock Text="服务器地址" Style="{StaticResource FieldLabelText}" />
+                        <TextBox Style="{StaticResource InputTextBox}"
+                                 Text="{Binding ServerUrl, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
+                        <TextBlock Text="例如 http://192.168.1.50:5000/clipboard，会自动补 /SyncClipboard.json。"
+                                   Style="{StaticResource HintText}"
+                                   Margin="0,6,0,16" />
+
+                        <Grid Margin="0,0,0,16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="14" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="用户名" Style="{StaticResource FieldLabelText}" />
+                                <TextBox Style="{StaticResource InputTextBox}"
+                                         Text="{Binding Username, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="密码" Style="{StaticResource FieldLabelText}" />
+                                <PasswordBox x:Name="PasswordInput"
+                                             MinHeight="34"
+                                             Padding="9,7"
+                                             PasswordChar="●"
+                                             PasswordChanged="PasswordInput_OnPasswordChanged" />
+                            </StackPanel>
+                        </Grid>
+
+                        <Grid Margin="0,0,0,16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="允许私有地址（局域网/本机）"
+                                           FontSize="13"
+                                           FontWeight="SemiBold" />
+                                <TextBlock Text="默认拒绝 localhost、环回和 192.168/10.x 等地址；SyncClipboard 在局域网时请勾选。"
+                                           Style="{StaticResource HintText}"
+                                           Margin="0,3,0,0" />
+                            </StackPanel>
+                            <CheckBox Grid.Column="1"
+                                      IsChecked="{Binding AllowPrivateAddresses, Mode=TwoWay}"
+                                      VerticalAlignment="Center"
+                                      Margin="12,0,0,0" />
+                        </Grid>
+
+                        <Grid Margin="0,0,0,16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="120" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="轮询间隔（秒）"
+                                           FontSize="13"
+                                           FontWeight="SemiBold" />
+                                <TextBlock Text="默认 3 秒；最小 1，最大 60。"
+                                           Style="{StaticResource HintText}"
+                                           Margin="0,3,0,0" />
+                            </StackPanel>
+                            <TextBox Grid.Column="1"
+                                     Style="{StaticResource InputTextBox}"
+                                     Text="{Binding IntervalSeconds, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
+                        </Grid>
+
+                        <Grid Margin="0,0,0,14">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="开机启动"
+                                           FontSize="13"
+                                           FontWeight="SemiBold" />
+                                <TextBlock Text="写入当前用户 Run 项，启动后最小化到托盘。"
+                                           Style="{StaticResource HintText}"
+                                           Margin="0,3,0,0" />
+                            </StackPanel>
+                            <CheckBox Grid.Column="1"
+                                      Style="{StaticResource ToggleSwitch}"
+                                      IsChecked="{Binding AutoStart, Mode=TwoWay}"
+                                      VerticalAlignment="Center" />
+                        </Grid>
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="关闭时最小化到托盘"
+                                           FontSize="13"
+                                           FontWeight="SemiBold" />
+                                <TextBlock Text="推荐开启，否则关掉设置中心后同步会停止。"
+                                           Style="{StaticResource HintText}"
+                                           Margin="0,3,0,0" />
+                            </StackPanel>
+                            <CheckBox Grid.Column="1"
+                                      Style="{StaticResource ToggleSwitch}"
+                                      IsChecked="{Binding MinimizeToTray, Mode=TwoWay}"
+                                      VerticalAlignment="Center" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource CardStyle}">
+                    <StackPanel>
+                        <TextBlock Text="运行状态" Style="{StaticResource SectionTitleText}" />
+
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                            <TextBlock>
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Text" Value="未运行" />
+                                        <Setter Property="Foreground" Value="{StaticResource MutedBrush}" />
+                                        <Setter Property="FontSize" Value="13" />
+                                        <Setter Property="FontWeight" Value="SemiBold" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                                                <Setter Property="Text" Value="运行中" />
+                                                <Setter Property="Foreground" Value="{StaticResource SuccessBrush}" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                            <TextBlock Text="{Binding LastSyncText, StringFormat='最近同步：{0}'}"
+                                       Style="{StaticResource HintText}"
+                                       Margin="12,0,0,0"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+
+                        <ProgressBar Height="4"
+                                     IsIndeterminate="True"
+                                     Margin="0,0,0,8"
+                                     Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibility}}" />
+                        <TextBlock Text="{Binding StatusMessage}"
+                                   Style="{StaticResource HintText}" />
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource CardStyle}"
+                        Background="#EFF6FF"
+                        BorderBrush="#BFDBFE">
+                    <StackPanel>
+                        <TextBlock Text="说明"
+                                   FontSize="14"
+                                   FontWeight="SemiBold"
+                                   Foreground="#1D4ED8" />
+                        <TextBlock Text="• 协议：SyncClipboard / WebDAV 兼容服务端，文本通过 SyncClipboard.json 双向同步。"
+                                   Style="{StaticResource HintText}"
+                                   Margin="0,6,0,0" />
+                        <TextBlock Text="• 密码用 Windows DPAPI 加密保存在 %APPDATA%\WeaselStudio\sync-settings.json，不写 Rime 配置。"
+                                   Style="{StaticResource HintText}"
+                                   Margin="0,4,0,0" />
+                        <TextBlock Text="• 默认拒绝本机/私有地址，避免误连内网；局域网服务器请显式勾选允许私有地址。"
+                                   Style="{StaticResource HintText}"
+                                   Margin="0,4,0,0" />
+                        <TextBlock Text="• 当前版本只同步文本；图片/文件会在后续版本加入。"
+                                   Style="{StaticResource HintText}"
+                                   Margin="0,4,0,0" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

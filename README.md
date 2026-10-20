@@ -2,12 +2,12 @@
 
 一个面向 Windows 小狼毫（Rime / Weasel）的图形化配置面板。目标是让常用设置不再需要手改 YAML，同时保留 Rime 原生的 `*.custom.yaml` 补丁机制。
 
-当前版本（0.3.0）是一个可运行的 MVP，已在本机 Weasel 0.17.4 + .NET 10 上验证。
+当前版本（0.4.0）是一个可运行的 MVP，已在本机 Weasel 0.17.4 + .NET 10 上验证。
 
 ## 下载与安装
 
-- **安装版**：从 [Releases](https://github.com/baipiao5555/weasel-studio/releases/latest) 下载 `WeaselStudio-Setup-0.3.0.exe`。按当前用户安装，不需要管理员权限；默认安装到 `%LOCALAPPDATA%\Programs\WeaselStudio`，会创建开始菜单快捷方式，桌面快捷方式可选。卸载不会删除 `%APPDATA%\Rime` 里的配置和备份。
-- **便携版**：下载 `WeaselStudio-Portable-0.3.0.exe`，双击直接运行，不写安装目录和注册表。
+- **安装版**：从 [Releases](https://github.com/baipiao5555/weasel-studio/releases/latest) 下载 `WeaselStudio-Setup-0.4.0.exe`。按当前用户安装，不需要管理员权限；默认安装到 `%LOCALAPPDATA%\Programs\WeaselStudio`，会创建开始菜单快捷方式，桌面快捷方式可选。卸载不会删除 `%APPDATA%\Rime` 里的配置和备份。
+- **便携版**：下载 `WeaselStudio-Portable-0.4.0.exe`，双击直接运行，不写安装目录和注册表。
 - 系统要求：Windows 10 / 11 x64。
 
 ## 功能
@@ -17,10 +17,18 @@
 - **输入习惯**：按方案编辑 switches（中英文、简繁、全角/半角、标点、Emoji 等）和每页候选数。
 - **模糊音**：按方案启用平翘舌、鼻边音、唇齿音、前后鼻音、ian/iang 等常见组合；保存会重建 `speller/algebra` 列表并保留原有规则。
 - **自定义短语**：用表格维护 `custom_phrase.txt`，支持短语/编码/权重，保存前自动备份。
+- **剪贴板同步**：用 SyncClipboard 协议同步文本剪贴板；支持托盘常驻、开机启动、DPAPI 保存密码、ETag/哈希防回环。默认拒绝本机/私有地址，局域网服务器需勾选“允许私有地址”。
 - **外观与候选窗**：内置 Windows 11 浅色/深色、微信输入法风、极简代码风等主题预设；也可细调配色、方向、字体、圆角、边框、边距、间距、阴影，右侧带实时候选窗预览；支持主题 JSON 导入/导出。
 - **高级 YAML**：直接编辑 `default.custom.yaml`、`weasel.custom.yaml` 等文件，保存前校验语法。
 - **一键部署**：调用 `WeaselDeployer.exe /deploy`，把配置应用到小狼毫。
 - **安全写入**：只修改 `patch` 节点，保留注释和原有顺序；每次写入前自动备份，写入后校验 YAML。
+
+## 剪贴板同步
+
+- 协议：SyncClipboard / WebDAV 兼容服务端，文本通过 `SyncClipboard.json` 双向同步。
+- 运行方式：设置中心常驻托盘；可设置开机启动；关闭窗口默认最小化到托盘。
+- 安全：密码用 Windows DPAPI 加密保存在 `%APPDATA%\WeaselStudio\sync-settings.json`；默认拒绝本机、环回和私有地址，局域网服务器需显式勾选“允许私有地址”。
+- 限制：当前只同步文本，图片/文件后续。
 
 ## 安全设计
 
@@ -74,7 +82,7 @@ $env:NSIS_EXE = "C:\path\to\makensis.exe"
 installer\build-installer.bat
 ```
 
-输出 `publish\WeaselStudio-Setup-0.3.0.exe`。安装脚本在 `installer\WeaselStudio.nsi`，按用户安装、不需要管理员权限。
+输出 `publish\WeaselStudio-Setup-0.4.0.exe`。安装脚本在 `installer\WeaselStudio.nsi`，按用户安装、不需要管理员权限。
 
 ## 测试
 
@@ -93,7 +101,7 @@ installer\build-installer.bat
 dotnet run --project tests/CoreTests/CoreTests.csproj -c Release
 ```
 
-当前本机结果：`50/50 checks passed`。
+当前本机结果：`62/62 checks passed`。
 
 ## 目录结构
 
@@ -129,7 +137,7 @@ weasel-studio/
 - 候选窗预览是近似渲染，最终效果以部署后的小狼毫为准。
 - `font_face` 在 Rime 中支持逗号分隔的字体回退链；界面直接编辑整条字符串，选择单个字体时会覆盖整条链。
 - 只管理用户目录下的配置，不直接改共享目录里的方案文件。
-- 未包含剪贴板同步；后续若要接 SyncClipboard，建议在独立的托盘程序或 Weasel 前端里做，而不是塞进 librime 核心。
+- 剪贴板同步当前只支持文本；图片/文件后续版本加入。需要设置中心保持运行（可关闭到托盘）。
 
 ## 相关项目
 

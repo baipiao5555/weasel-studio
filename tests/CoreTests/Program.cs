@@ -1,5 +1,9 @@
 using System.IO;
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Security.Cryptography;
+using System.Text;
 using WeaselStudio.Models;
 using WeaselStudio.Services;
 
@@ -22,6 +26,19 @@ void Check(string name, bool condition, string? detail = null)
 
 string FileHash(string path) =>
     File.Exists(path) ? Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(path))) : "";
+
+bool Throws(Action action)
+{
+    try
+    {
+        action();
+        return false;
+    }
+    catch
+    {
+        return true;
+    }
+}
 
 var environment = RimeEnvironment.Detect();
 Console.WriteLine($"user dir : {environment.UserDataDir}");
@@ -291,6 +308,69 @@ try
     Check("dictionary sync dir",
         dictionaryService.GetSyncDirectory().Contains("sync", StringComparison.OrdinalIgnoreCase));
 
+    // --- 0.4.0: URL guard, SyncClipboard protocol and DPAPI settings ---
+    Check("sync url rejects localhost",
+        Throws(() => SyncUrlValidator.Normalize("http://localhost:5000", false)));
+    Check("sync url rejects 127.0.0.1",
+        Throws(() => SyncUrlValidator.Normalize("http://127.0.0.1:5000", false)));
+    Check("sync url rejects private 192.168",
+        Throws(() => SyncUrlValidator.Normalize("http://192.168.1.50:5000", false)));
+    Check("sync url allows localhost opt-in",
+        SyncUrlValidator.Normalize("http://localhost:5000", true).Host == "localhost");
+    Check("sync url rejects ftp",
+        Throws(() => SyncUrlValidator.Normalize("ftp://example.com/x", true)));
+
+    var jsonUrl = SyncUrlValidator.GetJsonUrl(new Uri("http://example.com/clipboard"));
+    Check("sync json url", jsonUrl.EndsWith("/clipboard/SyncClipboard.json",
+        StringComparison.Ordinal));
+
+    var handler = new FakeSyncHandler
+    {
+        Json = "{\"type\":\"Text\",\"text\":\"你好\",\"hash\":\"ABC\",\"hasData\":false}"
+    };
+
+    using (var syncClient = new SyncClipboardClient(
+               "http://localhost:5000/clipboard", "u", "p", true, handler))
+    {
+        var (pulled, etag) = await syncClient.PullAsync(null, CancellationToken.None);
+        Check("sync client pull", pulled?.Text == "你好" && etag == "\"abc\"");
+        Check("sync client auth", handler.LastAuthorizationStartsWithBasic);
+
+        var (notModified, _) = await syncClient.PullAsync("\"abc\"", CancellationToken.None);
+        Check("sync client 304", notModified is null);
+
+        await syncClient.PushTextAsync("hello", "HASH", CancellationToken.None);
+        Check("sync client put",
+            handler.LastMethod == "PUT" &&
+            handler.LastBody?.Contains("\"Text\"", StringComparison.Ordinal) == true &&
+            handler.LastBody?.Contains("HASH", StringComparison.Ordinal) == true);
+    }
+
+    var settingsDir = Path.Combine(temp, "sync-settings");
+    var settingsStore = new SyncSettingsStore(settingsDir);
+    var savedSettings = new SyncSettings
+    {
+        Enabled = true,
+        ServerUrl = "http://example.com/clipboard",
+        Username = "user",
+        Password = "secret",
+        IntervalSeconds = 7,
+        MinimizeToTray = true,
+        AutoStart = false,
+        AllowPrivateAddresses = true
+    };
+    settingsStore.Save(savedSettings);
+    var loadedSettings = settingsStore.Load();
+    Check("sync settings roundtrip",
+        loadedSettings.Enabled &&
+        loadedSettings.ServerUrl == savedSettings.ServerUrl &&
+        loadedSettings.Username == "user" &&
+        loadedSettings.Password == "secret" &&
+        loadedSettings.IntervalSeconds == 7 &&
+        loadedSettings.AllowPrivateAddresses);
+    Check("sync settings password not plaintext",
+        !File.ReadAllText(settingsStore.SettingsPath).Contains("secret", StringComparison.Ordinal));
+
     var liveAfter = liveFiles.Select(FileHash).ToArray();
     Check("live config untouched", liveBefore.SequenceEqual(liveAfter));
 }
@@ -302,3 +382,40 @@ finally
 Console.WriteLine();
 Console.WriteLine($"{checks - failures}/{checks} checks passed.");
 return failures == 0 ? 0 : 1;
+
+internal sealed class FakeSyncHandler : HttpMessageHandler
+{
+    public string Json { get; set; } = "{}";
+    public string? LastMethod { get; private set; }
+    public string? LastBody { get; private set; }
+    public bool LastAuthorizationStartsWithBasic { get; private set; }
+
+    protected override async Task<HttpResponseMessage> SendAsync(
+        HttpRequestMessage request,
+        CancellationToken cancellationToken)
+    {
+        LastMethod = request.Method.Method;
+        LastAuthorizationStartsWithBasic =
+            request.Headers.Authorization?.Scheme == "Basic";
+
+        if (request.Content is not null)
+            LastBody = await request.Content.ReadAsStringAsync(cancellationToken);
+
+        if (request.Method == HttpMethod.Get &&
+            request.Headers.TryGetValues("If-None-Match", out var values) &&
+            values.Contains("\"abc\""))
+        {
+            return new HttpResponseMessage(HttpStatusCode.NotModified);
+        }
+
+        var response = new HttpResponseMessage(HttpStatusCode.OK);
+        if (request.Method == HttpMethod.Get)
+        {
+            response.Content = new StringContent(
+                Json, Encoding.UTF8, "application/json");
+        }
+
+        response.Headers.ETag = new EntityTagHeaderValue("\"abc\"");
+        return response;
+    }
+}

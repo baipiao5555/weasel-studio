@@ -17,7 +17,9 @@ public sealed class MainViewModel : ObservableObject
     private string _statusMessage = "就绪";
     private bool _isBusy;
 
-    public MainViewModel()
+    public MainViewModel(
+        ClipboardSyncService syncService,
+        SyncSettingsStore syncSettingsStore)
     {
         _environment = RimeEnvironment.Detect();
         _config = new ConfigService(_environment);
@@ -28,6 +30,7 @@ public sealed class MainViewModel : ObservableObject
         FuzzyPinyin = new FuzzyPinyinViewModel(_config, DeployAndReportAsync, SetStatus);
         Phrases = new PhrasesViewModel(_config, DeployAndReportAsync, SetStatus);
         DictionaryManagement = new DictionaryViewModel(_config, SetStatus);
+        ClipboardSync = new ClipboardSyncViewModel(syncService, syncSettingsStore, SetStatus);
         Appearance = new AppearanceViewModel(_config, DeployAndReportAsync, SetStatus);
         Advanced = new AdvancedViewModel(_config, DeployAndReportAsync, SetStatus);
 
@@ -57,6 +60,7 @@ public sealed class MainViewModel : ObservableObject
     public FuzzyPinyinViewModel FuzzyPinyin { get; }
     public PhrasesViewModel Phrases { get; }
     public DictionaryViewModel DictionaryManagement { get; }
+    public ClipboardSyncViewModel ClipboardSync { get; }
     public AppearanceViewModel Appearance { get; }
     public AdvancedViewModel Advanced { get; }
 
@@ -114,6 +118,7 @@ public sealed class MainViewModel : ObservableObject
             "fuzzy" => "fuzzy",
             "phrases" => "phrases",
             "dictionary" => "dictionary",
+            "clipboard" => "clipboard",
             "appearance" => "appearance",
             "advanced" => "advanced",
             _ => "dashboard"
@@ -126,6 +131,7 @@ public sealed class MainViewModel : ObservableObject
             "fuzzy" => FuzzyPinyin,
             "phrases" => Phrases,
             "dictionary" => DictionaryManagement,
+            "clipboard" => ClipboardSync,
             "appearance" => Appearance,
             "advanced" => Advanced,
             _ => Dashboard
@@ -142,6 +148,7 @@ public sealed class MainViewModel : ObservableObject
             "fuzzy" => "模糊音",
             "phrases" => "自定义短语",
             "dictionary" => "词典管理",
+            "clipboard" => "剪贴板同步",
             "appearance" => "外观与候选窗",
             "advanced" => "高级 YAML",
             _ => "概览"
@@ -153,6 +160,7 @@ public sealed class MainViewModel : ObservableObject
             "fuzzy" => "按方案启用平翘舌、鼻边音、前后鼻音等模糊规则；保存会重建 algebra 列表。",
             "phrases" => "用表格维护 custom_phrase.txt，不用记 Tab 分隔和权重格式。",
             "dictionary" => "备份、导出、导入和恢复用户词典；操作会短暂停止算法服务。",
+            "clipboard" => "用 SyncClipboard 协议同步文本剪贴板；密码用 DPAPI 加密保存。",
             "appearance" => "修改会写入 weasel.custom.yaml 的 patch 节点，原有注释会保留。",
             "advanced" => "直接编辑 *.custom.yaml；保存前会校验语法并自动备份。",
             _ => "检查小狼毫安装状态、当前方案和配置概况。"
