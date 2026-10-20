@@ -1,4 +1,4 @@
-# 小狼毫内置剪贴板面板 v0.6
+# 小狼毫内置剪贴板面板 v0.7
 
 这是**修改版 Weasel**，不是 Weasel Studio 设置中心。目标是把剪贴板历史做进输入法本身，而不是做独立托盘程序。
 
@@ -6,8 +6,8 @@
 
 - 源码：https://github.com/baipiao5555/weasel/tree/clipboard-panel
 - 基于 `rime/weasel` master `82b50c9`
-- 提交：`4568059`
-- 版本：`0.17.4.107.4568059`
+- 提交：`11c2611`
+- 版本：`0.17.4.108.11c2611`
 - 修改文件：`RimeWithWeasel/RimeWithWeasel.cpp`、`include/RimeWithWeasel.h`
 - 构建：GitHub Actions MSBuild（CI lint 与编译均通过）
 - 已确认 `WeaselServer.pdb` 包含 `_LoadClipboardSettings`、`ParseClipboardHotkey`、`ReadClipboardFiles`、`WriteClipboardFiles` 等面板符号
@@ -58,7 +58,7 @@ patch:
 ## 安装
 
 1. 先备份 `%APPDATA%\Rime`（至少备份 `.custom.yaml`、`custom_phrase.txt`）。
-2. 从 [Releases](https://github.com/baipiao5555/weasel-studio/releases/tag/weasel-panel-v0.6) 下载 `weasel-*.exe` 安装包。v0.5、v0.4 和 v0.2 保留作为回退版本；v0.3 的鼠标回调存在跨线程 UI 访问风险，不建议使用。
+2. 从 [Releases](https://github.com/baipiao5555/weasel-studio/releases/tag/weasel-panel-v0.7) 下载 `weasel-*.exe` 安装包。v0.6、v0.5、v0.4 和 v0.2 保留作为回退版本；v0.3 的鼠标回调存在跨线程 UI 访问风险，不建议使用。
 3. 运行安装包。它会替换 Weasel 的二进制和 IME DLL，保留用户配置。
 4. 重启 WeaselServer 或重新登录。
 5. 在任意文本框里按 `Ctrl+Shift+V` 测试。
