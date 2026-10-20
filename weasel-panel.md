@@ -1,4 +1,4 @@
-# 小狼毫内置剪贴板面板 v0.7
+# 小狼毫内置剪贴板面板 v0.8
 
 这是**修改版 Weasel**，不是 Weasel Studio 设置中心。目标是把剪贴板历史做进输入法本身，而不是做独立托盘程序。
 
@@ -6,11 +6,11 @@
 
 - 源码：https://github.com/baipiao5555/weasel/tree/clipboard-panel
 - 基于 `rime/weasel` master `82b50c9`
-- 提交：`11c2611`
-- 版本：`0.17.4.108.11c2611`
+- 提交：`bce2422`
+- 版本：`0.17.4.113.bce2422`
 - 修改文件：`RimeWithWeasel/RimeWithWeasel.cpp`、`include/RimeWithWeasel.h`
 - 构建：GitHub Actions MSBuild（CI lint 与编译均通过）
-- 已确认 `WeaselServer.pdb` 包含 `_LoadClipboardSettings`、`ParseClipboardHotkey`、`ReadClipboardFiles`、`WriteClipboardFiles` 等面板符号
+- 已确认 `WeaselServer.pdb` 包含 `_ChangeClipboardPage`、`_IsClipboardHotkeyKey`、`SaveClipboardEntries`、`_RefreshClipboardPanel` 等面板符号
 
 ## 功能
 
@@ -23,7 +23,7 @@
 - `1`–`8` 直接粘贴当前页对应条目
 - `Delete` 删除当前条目；`Ctrl+Shift+Delete` 连按两次清空全部历史和收藏，中间按其他键取消
 - `Ctrl+U` 清空搜索词
-- `Tab` 只看收藏，`Ctrl+D` 收藏/取消收藏；收藏项排在最前并带 `★ 收藏` 标记
+- `Tab` 或 `Ctrl+F` 只看收藏，`Ctrl+D` 收藏/取消收藏；收藏项排在最前并带 `★ 收藏` 标记
 - 输入 ASCII 字符过滤，`Backspace` 退格；查询为空时再按 `Backspace` 关闭
 - `Esc` 关闭
 - 标题显示当前筛选结果条数、页码和搜索词
@@ -32,6 +32,7 @@
 - 面板打开期间复制的新内容，会在下一次按键时刷新出来
 - 如果剪贴板被应用标记为 `ExcludeClipboardContentFromMonitorProcessing`，或 `CanIncludeInClipboardHistory` 为 0，则不会写入历史
 - 历史和收藏先写 `.tmp` 再原子替换，写入失败不会破坏旧文件
+- 历史总字符预算 32M，超出时淘汰最旧条目，避免大文本把内存撑爆
 - 历史：`%APPDATA%\Rime\weasel-clipboard-history.dat`
 - 收藏：`%APPDATA%\Rime\weasel-clipboard-favorites.dat`
 
@@ -58,7 +59,7 @@ patch:
 ## 安装
 
 1. 先备份 `%APPDATA%\Rime`（至少备份 `.custom.yaml`、`custom_phrase.txt`）。
-2. 从 [Releases](https://github.com/baipiao5555/weasel-studio/releases/tag/weasel-panel-v0.7) 下载 `weasel-*.exe` 安装包。v0.6、v0.5、v0.4 和 v0.2 保留作为回退版本；v0.3 的鼠标回调存在跨线程 UI 访问风险，不建议使用。
+2. 从 [Releases](https://github.com/baipiao5555/weasel-studio/releases/tag/weasel-panel-v0.8) 下载 `weasel-*.exe` 安装包。v0.7、v0.6、v0.5、v0.4 和 v0.2 保留作为回退版本；v0.3 的鼠标回调存在跨线程 UI 访问风险，不建议使用。
 3. 运行安装包。它会替换 Weasel 的二进制和 IME DLL，保留用户配置。
 4. 重启 WeaselServer 或重新登录。
 5. 在任意文本框里按 `Ctrl+Shift+V` 测试。
@@ -75,6 +76,7 @@ patch:
 - `Ctrl+Shift+V` 可能与部分应用的“粘贴为纯文本”快捷键冲突；可在 `clipboard/hotkey` 里改。
 - `Ctrl+Shift+Delete` 清空历史时会同时清空收藏。
 - 配置目前只能手改 `weasel.custom.yaml`，Weasel Studio 还没有对应的设置页。
+- 历史总字符预算 32M，超过会淘汰最旧条目；单条上限 4M 不代表能同时保留很多条。
 - 历史仍是明文存储；敏感过滤依赖应用主动设置 Windows 剪贴板排除标记，未标记的内容仍会被记录。
 - 安装包未签名，SmartScreen 可能提示“未知发布者”。
 - 这是实验性 Weasel 分支，不是官方 Weasel；没有在本机替换正在使用的 Weasel 做运行时验证。
