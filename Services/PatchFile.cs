@@ -114,7 +114,10 @@ public sealed class PatchFile
 
     public void SetBlock(string key, IEnumerable<string> childLines)
     {
-        var children = childLines.Select(x => x.Trim()).Where(x => x.Length > 0).ToList();
+        var children = childLines
+            .Select(x => x.TrimEnd())
+            .Where(x => x.Trim().Length > 0)
+            .ToList();
         var (header, start, end) = FindPatchSection();
         if (header < 0)
         {

@@ -5,7 +5,7 @@ ManifestDPIAware true
 !include "x64.nsh"
 
 !define APP_NAME "小狼毫设置中心"
-!define APP_VERSION "0.1.0"
+!define APP_VERSION "0.2.0"
 !define APP_PUBLISHER "baipiao5555"
 !define APP_EXE "WeaselStudio.exe"
 !define APP_REG_KEY "Software\WeaselStudio"

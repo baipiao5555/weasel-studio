@@ -19,6 +19,14 @@ public partial class App : Application
             args.Handled = true;
         };
 
+        var userDirIndex = Array.IndexOf(e.Args, "--user-dir");
+        if (userDirIndex >= 0 && userDirIndex + 1 < e.Args.Length)
+        {
+            Environment.SetEnvironmentVariable(
+                "WEASEL_STUDIO_USER_DIR",
+                e.Args[userDirIndex + 1]);
+        }
+
         var window = new MainWindow
         {
             DataContext = new MainViewModel()

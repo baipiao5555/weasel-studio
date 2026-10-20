@@ -1,4 +1,6 @@
 using System.IO;
+using System.Security.Cryptography;
+using WeaselStudio.Models;
 using WeaselStudio.Services;
 
 var failures = 0;
@@ -17,6 +19,9 @@ void Check(string name, bool condition, string? detail = null)
         Console.WriteLine($"FAIL  {name}{(detail is null ? "" : $"  ({detail})")}");
     }
 }
+
+string FileHash(string path) =>
+    File.Exists(path) ? Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(path))) : "";
 
 var environment = RimeEnvironment.Detect();
 Console.WriteLine($"user dir : {environment.UserDataDir}");
@@ -112,6 +117,103 @@ try
     Check("schema block updated", defaultText.Contains("- {schema: double_pinyin}"));
     Check("schema comment preserved", defaultText.Contains("schema list comment") || defaultText.Contains("customization"));
     Check("schema yaml parses", YamlConfig.ParseMap(defaultText) is not null);
+
+    // --- 0.2.0: input habits / phrases, isolated from the live config ---
+    var liveFiles = new[]
+    {
+        config.DefaultCustomPath,
+        config.WeaselCustomPath,
+        Path.Combine(config.UserDataDir, "rime_mint.schema.yaml"),
+        Path.Combine(config.UserDataDir, "custom_phrase.txt")
+    };
+    var liveBefore = liveFiles.Select(FileHash).ToArray();
+
+    var habitsDir = Path.Combine(temp, "habits");
+    Directory.CreateDirectory(habitsDir);
+
+    foreach (var name in new[] { "rime_mint.schema.yaml", "default.yaml", "default.custom.yaml", "custom_phrase.txt" })
+    {
+        var source = Path.Combine(config.UserDataDir, name);
+        if (File.Exists(source))
+            File.Copy(source, Path.Combine(habitsDir, name));
+    }
+
+    var habitsEnvironment = new RimeEnvironment
+    {
+        UserDataDir = habitsDir,
+        WeaselRoot = environment.WeaselRoot,
+        DeployerPath = environment.DeployerPath,
+        Version = environment.Version,
+        IsCustomUserDir = true
+    };
+    var habitsConfig = new ConfigService(habitsEnvironment);
+    var habitsService = new InputHabitsService(habitsConfig);
+    var mint = habitsConfig.LoadSchemas().FirstOrDefault(x => x.Id == "rime_mint");
+    Check("habits schema loaded", mint is not null);
+
+    if (mint is not null)
+    {
+        var switches = habitsService.LoadSwitches(mint).ToList();
+        Check("habits switches loaded", switches.Count >= 4, $"{switches.Count} switches");
+
+        var ascii = switches.FirstOrDefault(x => x.Name == "ascii_mode");
+        var fullShape = switches.FirstOrDefault(x => x.Name == "full_shape");
+        Check("ascii switch found", ascii is not null);
+        Check("ascii states", ascii?.States.Count == 2,
+            string.Join(",", ascii?.States ?? new List<string>()));
+
+        if (ascii is not null && fullShape is not null)
+        {
+            ascii.Reset = 1;
+            fullShape.Reset = 1;
+
+            habitsService.SaveSwitches(mint, switches);
+            var customPath = habitsService.GetSchemaCustomPath(mint);
+            var customText = File.ReadAllText(customPath);
+            Check("schema patch parses", YamlConfig.ParseMap(customText) is not null);
+
+            var customRoot = YamlConfig.ParseMap(customText);
+            var customPatch = YamlConfig.Get(customRoot, "patch") as Dictionary<object, object>;
+            var saved = YamlConfig.AsList(YamlConfig.Get(customPatch, "switches"))
+                .OfType<Dictionary<object, object>>()
+                .ToList();
+            var savedAscii = saved.FirstOrDefault(
+                x => YamlConfig.AsString(YamlConfig.Get(x, "name")) == "ascii_mode");
+            Check("ascii reset saved",
+                YamlConfig.AsInt(YamlConfig.Get(savedAscii, "reset")) == 1);
+            Check("ascii states preserved",
+                YamlConfig.AsList(YamlConfig.Get(savedAscii, "states")).Count() == 2);
+
+            var reloaded = habitsService.LoadSwitches(mint);
+            Check("ascii reset reloaded",
+                reloaded.First(x => x.Name == "ascii_mode").Reset == 1);
+        }
+
+        habitsService.SavePageSize(8);
+        Check("page size saved", habitsService.LoadPageSize() == 8);
+    }
+
+    var phrases = new PhrasesService(habitsConfig);
+    var phraseFile = Path.Combine(habitsDir, "custom_phrase.txt");
+    var (phraseComments, phraseEntries) = phrases.Load(phraseFile);
+    Check("phrases loaded", phraseEntries.Count > 0, $"{phraseEntries.Count} entries");
+    phraseEntries.Add(new PhraseEntry { Text = "测试短语", Code = "test", Weight = "1" });
+    phrases.Save(phraseFile, phraseComments, phraseEntries);
+    var (_, phraseEntriesReloaded) = phrases.Load(phraseFile);
+    Check("phrase saved",
+        phraseEntriesReloaded.Any(x => x.Text == "测试短语" && x.Code == "test"));
+
+    var phraseTest = Path.Combine(habitsDir, "phrase_test.txt");
+    File.WriteAllText(phraseTest, "# header\n\nhello\tworld\n");
+    var (testComments, testEntries) = phrases.Load(phraseTest);
+    testEntries.Add(new PhraseEntry { Text = "你好", Code = "nihao" });
+    phrases.Save(phraseTest, testComments, testEntries);
+    var phraseText = File.ReadAllText(phraseTest);
+    Check("phrase comment preserved", phraseText.StartsWith("# header", StringComparison.Ordinal));
+    Check("phrase tab format", phraseText.Contains("你好\tnihao", StringComparison.Ordinal));
+
+    var liveAfter = liveFiles.Select(FileHash).ToArray();
+    Check("live config untouched", liveBefore.SequenceEqual(liveAfter));
 }
 finally
 {

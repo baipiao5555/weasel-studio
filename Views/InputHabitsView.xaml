@@ -1,0 +1,133 @@
+<UserControl x:Class="WeaselStudio.Views.InputHabitsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Grid Margin="0,0,0,16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Text="这些开关和候选数只影响当前选中的方案。"
+                       Style="{StaticResource HintText}"
+                       VerticalAlignment="Center" />
+
+            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                <Border Background="#FEF3C7"
+                        CornerRadius="9"
+                        Padding="8,3"
+                        Margin="0,0,10,0"
+                        VerticalAlignment="Center"
+                        Visibility="{Binding IsDirty, Converter={StaticResource BoolToVisibility}}">
+                    <TextBlock Text="未保存" Foreground="#B45309" FontSize="11" />
+                </Border>
+                <Button Content="重新加载"
+                        Style="{StaticResource SecondaryButton}"
+                        Command="{Binding ReloadCommand}" />
+                <Button Content="打开方案补丁"
+                        Style="{StaticResource SecondaryButton}"
+                        Command="{Binding OpenSchemaFileCommand}"
+                        Margin="8,0,0,0" />
+                <Button Content="保存"
+                        Style="{StaticResource SecondaryButton}"
+                        Command="{Binding SaveCommand}"
+                        Margin="8,0,0,0" />
+                <Button Content="保存并部署"
+                        Style="{StaticResource PrimaryButton}"
+                        Command="{Binding SaveAndDeployCommand}"
+                        Margin="8,0,0,0" />
+            </StackPanel>
+        </Grid>
+
+        <ScrollViewer Grid.Row="1"
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled">
+            <StackPanel Margin="0,0,4,24">
+                <Border Style="{StaticResource CardStyle}">
+                    <StackPanel>
+                        <TextBlock Text="当前方案" Style="{StaticResource SectionTitleText}" />
+                        <ComboBox ItemsSource="{Binding Schemas}"
+                                  DisplayMemberPath="DisplayName"
+                                  SelectedItem="{Binding SelectedSchema, Mode=TwoWay}"
+                                  MinHeight="34" />
+                        <TextBlock Text="切换方案后会加载该方案自己的 switches；不同方案需要分别保存。"
+                                   Style="{StaticResource HintText}"
+                                   Margin="0,8,0,0" />
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource CardStyle}">
+                    <StackPanel>
+                        <TextBlock Text="输入开关" Style="{StaticResource SectionTitleText}" />
+
+                        <ItemsControl ItemsSource="{Binding Switches}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Margin="0,0,0,14">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="240" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding DisplayName}"
+                                                       FontSize="13"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{StaticResource TextBrush}" />
+                                            <TextBlock Text="{Binding HintText}"
+                                                       Style="{StaticResource HintText}"
+                                                       Margin="0,2,0,0" />
+                                        </StackPanel>
+
+                                        <ComboBox Grid.Column="1"
+                                                  ItemsSource="{Binding DisplayStates}"
+                                                  SelectedIndex="{Binding Reset, Mode=TwoWay}"
+                                                  MinHeight="34"
+                                                  VerticalAlignment="Center"
+                                                  Visibility="{Binding HasStates, Converter={StaticResource BoolToVisibility}}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <TextBlock Text="该方案没有可编辑的 switches，或者方案文件格式不在支持范围内。">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock" BasedOn="{StaticResource HintText}">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Switches.Count}" Value="0">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource CardStyle}">
+                    <StackPanel>
+                        <TextBlock Text="候选词数量" Style="{StaticResource SectionTitleText}" />
+                        <StackPanel Orientation="Horizontal">
+                            <TextBox Style="{StaticResource InputTextBox}"
+                                     Width="100"
+                                     Text="{Binding PageSize, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
+                            <TextBlock Text="每页候选数，建议 5–9；写入 default.custom.yaml 的 menu/page_size。"
+                                       Style="{StaticResource HintText}"
+                                       Margin="12,8,0,0" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <TextBlock Text="{Binding StatusMessage}"
+                           Style="{StaticResource HintText}"
+                           Margin="0,4,0,0" />
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

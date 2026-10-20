@@ -15,6 +15,12 @@
             <DataTemplate DataType="{x:Type vm:SchemasViewModel}">
                 <views:SchemasView />
             </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:InputHabitsViewModel}">
+                <views:InputHabitsView />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:PhrasesViewModel}">
+                <views:PhrasesView />
+            </DataTemplate>
             <DataTemplate DataType="{x:Type vm:AppearanceViewModel}">
                 <views:AppearanceView />
             </DataTemplate>

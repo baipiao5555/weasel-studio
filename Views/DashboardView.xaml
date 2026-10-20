@@ -19,6 +19,21 @@
                 </StackPanel>
             </Border>
 
+            <Border Style="{StaticResource CardStyle}"
+                    Background="#EFF6FF"
+                    BorderBrush="#BFDBFE"
+                    Visibility="{Binding Environment.IsCustomUserDir, Converter={StaticResource BoolToVisibility}}">
+                <StackPanel>
+                    <TextBlock Text="测试模式"
+                               FontSize="15"
+                               FontWeight="SemiBold"
+                               Foreground="#1D4ED8" />
+                    <TextBlock Text="当前使用自定义用户目录，所有读写只作用于该目录；部署已禁用，不会影响正在使用的小狼毫。"
+                               Style="{StaticResource HintText}"
+                               Margin="0,6,0,0" />
+                </StackPanel>
+            </Border>
+
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />

@@ -78,6 +78,40 @@
                 <StackPanel Margin="0,0,4,24">
                     <Border Style="{StaticResource CardStyle}">
                         <StackPanel>
+                            <TextBlock Text="主题预设" Style="{StaticResource SectionTitleText}" />
+                            <TextBlock Text="先选一个接近的风格，再在下面微调。应用后记得保存并部署。"
+                                       Style="{StaticResource HintText}"
+                                       Margin="0,0,0,12" />
+                            <ItemsControl ItemsSource="{Binding ThemePresets}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Button Style="{StaticResource SecondaryButton}"
+                                                Margin="0,0,8,8"
+                                                Padding="12,8"
+                                                Command="{Binding DataContext.ApplyThemePresetCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                CommandParameter="{Binding}">
+                                            <StackPanel MaxWidth="180">
+                                                <TextBlock Text="{Binding Name}"
+                                                           FontWeight="SemiBold"
+                                                           FontSize="13" />
+                                                <TextBlock Text="{Binding Description}"
+                                                           Style="{StaticResource HintText}"
+                                                           Margin="0,3,0,0" />
+                                            </StackPanel>
+                                        </Button>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource CardStyle}">
+                        <StackPanel>
                             <TextBlock Text="配色" Style="{StaticResource SectionTitleText}" />
                             <Grid>
                                 <Grid.ColumnDefinitions>

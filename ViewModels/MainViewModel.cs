@@ -24,6 +24,8 @@ public sealed class MainViewModel : ObservableObject
 
         Dashboard = new DashboardViewModel(_config, DeployAndReportAsync, SetStatus);
         Schemas = new SchemasViewModel(_config, DeployAndReportAsync, SetStatus);
+        InputHabits = new InputHabitsViewModel(_config, DeployAndReportAsync, SetStatus);
+        Phrases = new PhrasesViewModel(_config, DeployAndReportAsync, SetStatus);
         Appearance = new AppearanceViewModel(_config, DeployAndReportAsync, SetStatus);
         Advanced = new AdvancedViewModel(_config, DeployAndReportAsync, SetStatus);
 
@@ -49,6 +51,8 @@ public sealed class MainViewModel : ObservableObject
 
     public DashboardViewModel Dashboard { get; }
     public SchemasViewModel Schemas { get; }
+    public InputHabitsViewModel InputHabits { get; }
+    public PhrasesViewModel Phrases { get; }
     public AppearanceViewModel Appearance { get; }
     public AdvancedViewModel Advanced { get; }
 
@@ -102,6 +106,8 @@ public sealed class MainViewModel : ObservableObject
         var normalized = key switch
         {
             "schemas" => "schemas",
+            "habits" => "habits",
+            "phrases" => "phrases",
             "appearance" => "appearance",
             "advanced" => "advanced",
             _ => "dashboard"
@@ -110,6 +116,8 @@ public sealed class MainViewModel : ObservableObject
         IReloadable? page = normalized switch
         {
             "schemas" => Schemas,
+            "habits" => InputHabits,
+            "phrases" => Phrases,
             "appearance" => Appearance,
             "advanced" => Advanced,
             _ => Dashboard
@@ -122,6 +130,8 @@ public sealed class MainViewModel : ObservableObject
         PageTitle = normalized switch
         {
             "schemas" => "输入方案",
+            "habits" => "输入习惯",
+            "phrases" => "自定义短语",
             "appearance" => "外观与候选窗",
             "advanced" => "高级 YAML",
             _ => "概览"
@@ -129,6 +139,8 @@ public sealed class MainViewModel : ObservableObject
         PageSubtitle = normalized switch
         {
             "schemas" => "勾选要启用的方案；列表顺序就是方案切换顺序，第一位为默认。",
+            "habits" => "按方案调整中英文、简繁、标点、Emoji 等开关，以及每页候选数。",
+            "phrases" => "用表格维护 custom_phrase.txt，不用记 Tab 分隔和权重格式。",
             "appearance" => "修改会写入 weasel.custom.yaml 的 patch 节点，原有注释会保留。",
             "advanced" => "直接编辑 *.custom.yaml；保存前会校验语法并自动备份。",
             _ => "检查小狼毫安装状态、当前方案和配置概况。"
@@ -143,6 +155,14 @@ public sealed class MainViewModel : ObservableObject
 
     private async Task<DeployResult> DeployAndReportAsync()
     {
+        if (_environment.IsCustomUserDir)
+        {
+            const string message = "当前是测试模式（自定义用户目录），不会调用 WeaselDeployer。";
+            SetStatus(message);
+            MessageBox.Show(message, "测试模式", MessageBoxButton.OK, MessageBoxImage.Information);
+            return new DeployResult(-1, "", message, false);
+        }
+
         if (IsBusy)
             return new DeployResult(-1, "", "已有部署任务正在运行。", false);
 

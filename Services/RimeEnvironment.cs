@@ -12,6 +12,7 @@ public sealed class RimeEnvironment
     public string ServerPath { get; init; } = "";
     public string Version { get; init; } = "";
     public string InstallDir { get; init; } = "";
+    public bool IsCustomUserDir { get; init; }
 
     public bool IsFound =>
         !string.IsNullOrWhiteSpace(UserDataDir) &&
@@ -19,22 +20,32 @@ public sealed class RimeEnvironment
         !string.IsNullOrWhiteSpace(DeployerPath) &&
         File.Exists(DeployerPath);
 
-    public string StatusText => IsFound
-        ? $"已连接 · Weasel {Version}"
-        : "未找到小狼毫，请先安装或手动选择目录";
+    public string StatusText => IsCustomUserDir
+        ? "测试模式 · 自定义用户目录"
+        : IsFound
+            ? $"已连接 · Weasel {Version}"
+            : "未找到小狼毫，请先安装或手动选择目录";
 
     public static RimeEnvironment Detect()
     {
-        var userDir = Registry.GetValue(
-            @"HKEY_CURRENT_USER\Software\Rime\Weasel",
-            "RimeUserDir", null) as string;
+        var customUserDir = Environment.GetEnvironmentVariable("WEASEL_STUDIO_USER_DIR");
+        var isCustomUserDir = !string.IsNullOrWhiteSpace(customUserDir);
 
-        if (string.IsNullOrWhiteSpace(userDir))
+        string? userDir;
+        if (isCustomUserDir)
         {
-            userDir = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "Rime");
+            userDir = Environment.ExpandEnvironmentVariables(customUserDir!);
         }
+        else
+        {
+            userDir = Registry.GetValue(
+                @"HKEY_CURRENT_USER\Software\Rime\Weasel",
+                "RimeUserDir", null) as string;
+        }
+
+        userDir ??= Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "Rime");
 
         var installDir = Registry.GetValue(
             @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Rime\Weasel",
@@ -92,7 +103,8 @@ public sealed class RimeEnvironment
             DeployerPath = deployer,
             ServerPath = server,
             Version = version,
-            InstallDir = installDir ?? ""
+            InstallDir = installDir ?? "",
+            IsCustomUserDir = isCustomUserDir
         };
     }
 

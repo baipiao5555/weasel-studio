@@ -69,6 +69,22 @@
                     </RadioButton>
 
                     <RadioButton Style="{StaticResource NavRadioButton}"
+                                 IsChecked="{Binding SelectedNavKey, Mode=TwoWay, Converter={StaticResource StringEquals}, ConverterParameter=habits}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="⚙" Width="18" Margin="0,0,8,0" />
+                            <TextBlock Text="输入习惯" />
+                        </StackPanel>
+                    </RadioButton>
+
+                    <RadioButton Style="{StaticResource NavRadioButton}"
+                                 IsChecked="{Binding SelectedNavKey, Mode=TwoWay, Converter={StaticResource StringEquals}, ConverterParameter=phrases}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="✎" Width="18" Margin="0,0,8,0" />
+                            <TextBlock Text="自定义短语" />
+                        </StackPanel>
+                    </RadioButton>
+
+                    <RadioButton Style="{StaticResource NavRadioButton}"
                                  IsChecked="{Binding SelectedNavKey, Mode=TwoWay, Converter={StaticResource StringEquals}, ConverterParameter=appearance}">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="◐" Width="18" Margin="0,0,8,0" />

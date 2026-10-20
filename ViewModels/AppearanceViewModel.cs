@@ -88,11 +88,29 @@ public sealed class AppearanceViewModel : ObservableObject, IReloadable
             new("preview_all", "全部候选（preview_all）")
         };
 
+        ThemePresets = new List<ThemePreset>
+        {
+            new("Windows 11 浅色", "圆角、细边框、舒适间距",
+                "mint_light_blue", "mint_dark_blue", false, false,
+                "Microsoft YaHei", 12, 10, 1, 12, 8, 10, 18, 8, 0),
+            new("Windows 11 深色", "深色配色，适合夜间",
+                "mint_dark_blue", "mint_dark_blue", false, false,
+                "Microsoft YaHei", 12, 10, 1, 12, 8, 10, 18, 8, 0),
+            new("微信输入法风", "横排、大字号、紧凑",
+                "mint_light_green", "mint_dark_green", true, false,
+                "Microsoft YaHei", 14, 8, 0, 10, 6, 8, 16, 8, 0),
+            new("极简代码风", "等宽字体、无边框、横排",
+                "nord", "", true, false,
+                "Cascadia Mono", 12, 4, 0, 8, 4, 6, 12, 6, 0)
+        };
+
         LoadFontFamilies();
 
         ReloadCommand = new RelayCommand(ReloadWithConfirm);
         SaveCommand = new AsyncRelayCommand(() => SaveAsync(false));
         SaveAndDeployCommand = new AsyncRelayCommand(() => SaveAsync(true));
+        ApplyThemePresetCommand = new RelayCommand(parameter =>
+            ApplyThemePreset(parameter as ThemePreset));
     }
 
     public ObservableCollection<ColorSchemeInfo> ColorSchemes { get; }
@@ -101,10 +119,12 @@ public sealed class AppearanceViewModel : ObservableObject, IReloadable
     public ObservableCollection<PreviewCandidate> PreviewCandidates { get; }
     public IReadOnlyList<OptionItem> Directions { get; }
     public IReadOnlyList<OptionItem> PreeditTypes { get; }
+    public IReadOnlyList<ThemePreset> ThemePresets { get; }
 
     public ICommand ReloadCommand { get; }
     public ICommand SaveCommand { get; }
     public ICommand SaveAndDeployCommand { get; }
+    public ICommand ApplyThemePresetCommand { get; }
 
     public bool IsDirty
     {
@@ -469,6 +489,39 @@ public sealed class AppearanceViewModel : ObservableObject, IReloadable
         IsDirty = false;
         StatusMessage = $"已加载 {ColorSchemes.Count} 个配色方案。";
         RefreshPreview();
+    }
+
+    private void ApplyThemePreset(ThemePreset? preset)
+    {
+        if (preset is null)
+            return;
+
+        if (ColorSchemes.Any(x => x.Id == preset.ColorScheme))
+            SelectedColorSchemeId = preset.ColorScheme;
+
+        SelectedDarkColorSchemeId = string.IsNullOrWhiteSpace(preset.DarkScheme) ||
+                                    DarkColorSchemes.Any(x => x.Id == preset.DarkScheme)
+            ? preset.DarkScheme
+            : "";
+
+        SelectedDirection = preset.Horizontal
+            ? "horizontal"
+            : preset.VerticalText ? "vertical_text" : "vertical";
+
+        FontFace = preset.FontFace;
+        FontPoint = preset.FontPoint;
+        CornerRadius = preset.CornerRadius;
+        BorderWidth = preset.BorderWidth;
+        MarginX = preset.MarginX;
+        MarginY = preset.MarginY;
+        Spacing = preset.Spacing;
+        CandidateSpacing = preset.CandidateSpacing;
+        HilitePadding = preset.HilitePadding;
+        ShadowRadius = preset.ShadowRadius;
+
+        MarkDirty();
+        RefreshPreview();
+        StatusMessage = $"已应用主题预设「{preset.Name}」，保存并部署后生效。";
     }
 
     private void ReloadWithConfirm()
