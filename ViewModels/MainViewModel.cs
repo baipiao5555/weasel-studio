@@ -25,7 +25,9 @@ public sealed class MainViewModel : ObservableObject
         Dashboard = new DashboardViewModel(_config, DeployAndReportAsync, SetStatus);
         Schemas = new SchemasViewModel(_config, DeployAndReportAsync, SetStatus);
         InputHabits = new InputHabitsViewModel(_config, DeployAndReportAsync, SetStatus);
+        FuzzyPinyin = new FuzzyPinyinViewModel(_config, DeployAndReportAsync, SetStatus);
         Phrases = new PhrasesViewModel(_config, DeployAndReportAsync, SetStatus);
+        DictionaryManagement = new DictionaryViewModel(_config, SetStatus);
         Appearance = new AppearanceViewModel(_config, DeployAndReportAsync, SetStatus);
         Advanced = new AdvancedViewModel(_config, DeployAndReportAsync, SetStatus);
 
@@ -52,7 +54,9 @@ public sealed class MainViewModel : ObservableObject
     public DashboardViewModel Dashboard { get; }
     public SchemasViewModel Schemas { get; }
     public InputHabitsViewModel InputHabits { get; }
+    public FuzzyPinyinViewModel FuzzyPinyin { get; }
     public PhrasesViewModel Phrases { get; }
+    public DictionaryViewModel DictionaryManagement { get; }
     public AppearanceViewModel Appearance { get; }
     public AdvancedViewModel Advanced { get; }
 
@@ -107,7 +111,9 @@ public sealed class MainViewModel : ObservableObject
         {
             "schemas" => "schemas",
             "habits" => "habits",
+            "fuzzy" => "fuzzy",
             "phrases" => "phrases",
+            "dictionary" => "dictionary",
             "appearance" => "appearance",
             "advanced" => "advanced",
             _ => "dashboard"
@@ -117,7 +123,9 @@ public sealed class MainViewModel : ObservableObject
         {
             "schemas" => Schemas,
             "habits" => InputHabits,
+            "fuzzy" => FuzzyPinyin,
             "phrases" => Phrases,
+            "dictionary" => DictionaryManagement,
             "appearance" => Appearance,
             "advanced" => Advanced,
             _ => Dashboard
@@ -131,7 +139,9 @@ public sealed class MainViewModel : ObservableObject
         {
             "schemas" => "输入方案",
             "habits" => "输入习惯",
+            "fuzzy" => "模糊音",
             "phrases" => "自定义短语",
+            "dictionary" => "词典管理",
             "appearance" => "外观与候选窗",
             "advanced" => "高级 YAML",
             _ => "概览"
@@ -140,7 +150,9 @@ public sealed class MainViewModel : ObservableObject
         {
             "schemas" => "勾选要启用的方案；列表顺序就是方案切换顺序，第一位为默认。",
             "habits" => "按方案调整中英文、简繁、标点、Emoji 等开关，以及每页候选数。",
+            "fuzzy" => "按方案启用平翘舌、鼻边音、前后鼻音等模糊规则；保存会重建 algebra 列表。",
             "phrases" => "用表格维护 custom_phrase.txt，不用记 Tab 分隔和权重格式。",
+            "dictionary" => "备份、导出、导入和恢复用户词典；操作会短暂停止算法服务。",
             "appearance" => "修改会写入 weasel.custom.yaml 的 patch 节点，原有注释会保留。",
             "advanced" => "直接编辑 *.custom.yaml；保存前会校验语法并自动备份。",
             _ => "检查小狼毫安装状态、当前方案和配置概况。"

@@ -77,6 +77,14 @@
                     </RadioButton>
 
                     <RadioButton Style="{StaticResource NavRadioButton}"
+                                 IsChecked="{Binding SelectedNavKey, Mode=TwoWay, Converter={StaticResource StringEquals}, ConverterParameter=fuzzy}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="≈" Width="18" Margin="0,0,8,0" />
+                            <TextBlock Text="模糊音" />
+                        </StackPanel>
+                    </RadioButton>
+
+                    <RadioButton Style="{StaticResource NavRadioButton}"
                                  IsChecked="{Binding SelectedNavKey, Mode=TwoWay, Converter={StaticResource StringEquals}, ConverterParameter=phrases}">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="✎" Width="18" Margin="0,0,8,0" />

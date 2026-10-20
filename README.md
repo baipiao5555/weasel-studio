@@ -2,12 +2,12 @@
 
 一个面向 Windows 小狼毫（Rime / Weasel）的图形化配置面板。目标是让常用设置不再需要手改 YAML，同时保留 Rime 原生的 `*.custom.yaml` 补丁机制。
 
-当前版本（0.2.0）是一个可运行的 MVP，已在本机 Weasel 0.17.4 + .NET 10 上验证。
+当前版本（0.3.0）是一个可运行的 MVP，已在本机 Weasel 0.17.4 + .NET 10 上验证。
 
 ## 下载与安装
 
-- **安装版**：从 [Releases](https://github.com/baipiao5555/weasel-studio/releases/latest) 下载 `WeaselStudio-Setup-0.2.0.exe`。按当前用户安装，不需要管理员权限；默认安装到 `%LOCALAPPDATA%\Programs\WeaselStudio`，会创建开始菜单快捷方式，桌面快捷方式可选。卸载不会删除 `%APPDATA%\Rime` 里的配置和备份。
-- **便携版**：下载 `WeaselStudio-Portable-0.2.0.exe`，双击直接运行，不写安装目录和注册表。
+- **安装版**：从 [Releases](https://github.com/baipiao5555/weasel-studio/releases/latest) 下载 `WeaselStudio-Setup-0.3.0.exe`。按当前用户安装，不需要管理员权限；默认安装到 `%LOCALAPPDATA%\Programs\WeaselStudio`，会创建开始菜单快捷方式，桌面快捷方式可选。卸载不会删除 `%APPDATA%\Rime` 里的配置和备份。
+- **便携版**：下载 `WeaselStudio-Portable-0.3.0.exe`，双击直接运行，不写安装目录和注册表。
 - 系统要求：Windows 10 / 11 x64。
 
 ## 功能
@@ -15,8 +15,9 @@
 - **概览**：自动探测小狼毫安装目录、用户目录、部署器和版本；显示当前方案、方案数量、自定义文件数量和最近备份。
 - **输入方案**：扫描用户目录下的 `*.schema.yaml`，勾选启用、调整顺序、设为默认，保存到 `default.custom.yaml` 的 `patch/schema_list`。
 - **输入习惯**：按方案编辑 switches（中英文、简繁、全角/半角、标点、Emoji 等）和每页候选数。
+- **模糊音**：按方案启用平翘舌、鼻边音、唇齿音、前后鼻音、ian/iang 等常见组合；保存会重建 `speller/algebra` 列表并保留原有规则。
 - **自定义短语**：用表格维护 `custom_phrase.txt`，支持短语/编码/权重，保存前自动备份。
-- **外观与候选窗**：内置 Windows 11 浅色/深色、微信输入法风、极简代码风等主题预设；也可细调配色、方向、字体、圆角、边框、边距、间距、阴影，右侧带实时候选窗预览。
+- **外观与候选窗**：内置 Windows 11 浅色/深色、微信输入法风、极简代码风等主题预设；也可细调配色、方向、字体、圆角、边框、边距、间距、阴影，右侧带实时候选窗预览；支持主题 JSON 导入/导出。
 - **高级 YAML**：直接编辑 `default.custom.yaml`、`weasel.custom.yaml` 等文件，保存前校验语法。
 - **一键部署**：调用 `WeaselDeployer.exe /deploy`，把配置应用到小狼毫。
 - **安全写入**：只修改 `patch` 节点，保留注释和原有顺序；每次写入前自动备份，写入后校验 YAML。
@@ -73,7 +74,7 @@ $env:NSIS_EXE = "C:\path\to\makensis.exe"
 installer\build-installer.bat
 ```
 
-输出 `publish\WeaselStudio-Setup-0.2.0.exe`。安装脚本在 `installer\WeaselStudio.nsi`，按用户安装、不需要管理员权限。
+输出 `publish\WeaselStudio-Setup-0.3.0.exe`。安装脚本在 `installer\WeaselStudio.nsi`，按用户安装、不需要管理员权限。
 
 ## 测试
 
@@ -92,7 +93,7 @@ installer\build-installer.bat
 dotnet run --project tests/CoreTests/CoreTests.csproj -c Release
 ```
 
-当前本机结果：`37/37 checks passed`。
+当前本机结果：`50/50 checks passed`。
 
 ## 目录结构
 
@@ -112,6 +113,9 @@ weasel-studio/
     ShellService.cs                打开目录（ShellExecute）
   ViewModels/                      各页面 + 主窗口 ViewModel
   Views/                           各页面的 XAML
+  Models/FuzzyRuleGroup.cs         模糊音组合定义
+  Models/ThemeFile.cs              主题导入/导出 JSON 模型
+  Services/FuzzyPinyinService.cs   algebra 读取、合并与写入
   Assets/                          应用图标
   installer/                       NSIS 安装脚本
   tests/CoreTests/                 控制台测试
@@ -119,7 +123,8 @@ weasel-studio/
 
 ## 已知限制
 
-- 这是 MVP，优先覆盖高频设置；模糊音、`app_options`、词典管理、主题导入/导出等还未做成可视化页面，可以先用「高级 YAML」。
+- 常见模糊音和主题导入/导出已支持；`app_options`、更细的自定义 algebra 仍可先用「高级 YAML」。
+- 词典管理入口暂时隐藏：当前环境里 `WeaselDeployer.exe /dict` 会挂起（重启算法服务后仍复现），代码保留，等改成控制台包装或直接读取 userdb 后再开放。
 - 支持 `--user-dir <目录>` 或环境变量 `WEASEL_STUDIO_USER_DIR` 进入测试模式：所有读写只作用于指定目录，部署会被禁用，适合在配置副本上试改。
 - 候选窗预览是近似渲染，最终效果以部署后的小狼毫为准。
 - `font_face` 在 Rime 中支持逗号分隔的字体回退链；界面直接编辑整条字符串，选择单个字体时会覆盖整条链。

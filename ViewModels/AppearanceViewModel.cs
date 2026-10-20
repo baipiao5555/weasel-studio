@@ -1,7 +1,10 @@
 using System.Collections.ObjectModel;
+using System.IO;
+using System.Text.Json;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
+using Microsoft.Win32;
 using WeaselStudio.Infrastructure;
 using WeaselStudio.Models;
 using WeaselStudio.Services;
@@ -111,6 +114,8 @@ public sealed class AppearanceViewModel : ObservableObject, IReloadable
         SaveAndDeployCommand = new AsyncRelayCommand(() => SaveAsync(true));
         ApplyThemePresetCommand = new RelayCommand(parameter =>
             ApplyThemePreset(parameter as ThemePreset));
+        ImportThemeCommand = new RelayCommand(ImportTheme);
+        ExportThemeCommand = new RelayCommand(ExportTheme);
     }
 
     public ObservableCollection<ColorSchemeInfo> ColorSchemes { get; }
@@ -125,6 +130,8 @@ public sealed class AppearanceViewModel : ObservableObject, IReloadable
     public ICommand SaveCommand { get; }
     public ICommand SaveAndDeployCommand { get; }
     public ICommand ApplyThemePresetCommand { get; }
+    public ICommand ImportThemeCommand { get; }
+    public ICommand ExportThemeCommand { get; }
 
     public bool IsDirty
     {
@@ -489,6 +496,158 @@ public sealed class AppearanceViewModel : ObservableObject, IReloadable
         IsDirty = false;
         StatusMessage = $"已加载 {ColorSchemes.Count} 个配色方案。";
         RefreshPreview();
+    }
+
+    private void ExportTheme()
+    {
+        var dialog = new SaveFileDialog
+        {
+            Title = "导出主题",
+            Filter = "主题文件 (*.json)|*.json|所有文件 (*.*)|*.*",
+            FileName = "weasel-theme.json"
+        };
+
+        if (dialog.ShowDialog() != true)
+            return;
+
+        try
+        {
+            var json = JsonSerializer.Serialize(
+                BuildThemeFile(),
+                new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(dialog.FileName, json);
+            StatusMessage = $"已导出主题：{Path.GetFileName(dialog.FileName)}";
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = "导出主题失败：" + ex.Message;
+            MessageBox.Show(ex.Message, "导出主题失败", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    private void ImportTheme()
+    {
+        var dialog = new OpenFileDialog
+        {
+            Title = "导入主题",
+            Filter = "主题文件 (*.json)|*.json|所有文件 (*.*)|*.*"
+        };
+
+        if (dialog.ShowDialog() != true)
+            return;
+
+        try
+        {
+            var theme = JsonSerializer.Deserialize<ThemeFile>(
+                File.ReadAllText(dialog.FileName),
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            if (theme is null)
+                throw new InvalidOperationException("主题文件为空或格式不正确。");
+
+            var warnings = ApplyThemeFile(theme);
+            StatusMessage = warnings.Count == 0
+                ? $"已导入主题「{theme.Name}」，保存并部署后生效。"
+                : $"已导入主题「{theme.Name}」，但{warnings.Count}项保留原值：{string.Join("；", warnings)}";
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = "导入主题失败：" + ex.Message;
+            MessageBox.Show(ex.Message, "导入主题失败", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    private ThemeFile BuildThemeFile() => new()
+    {
+        Name = "自定义主题",
+        ColorScheme = SelectedColorSchemeId,
+        ColorSchemeDark = SelectedDarkColorSchemeId,
+        Horizontal = SelectedDirection == "horizontal",
+        VerticalText = SelectedDirection == "vertical_text",
+        FontFace = FontFace,
+        FontPoint = FontPoint,
+        LabelFontFace = LabelFontFace,
+        LabelFontPoint = LabelFontPoint,
+        CommentFontFace = CommentFontFace,
+        CommentFontPoint = CommentFontPoint,
+        InlinePreedit = InlinePreedit,
+        PreeditType = SelectedPreeditType,
+        CornerRadius = CornerRadius,
+        BorderWidth = BorderWidth,
+        MarginX = MarginX,
+        MarginY = MarginY,
+        Spacing = Spacing,
+        CandidateSpacing = CandidateSpacing,
+        HilitePadding = HilitePadding,
+        ShadowRadius = ShadowRadius,
+        ShadowOffsetX = ShadowOffsetX,
+        ShadowOffsetY = ShadowOffsetY,
+        MaxHeight = MaxHeight,
+        MinWidth = MinWidth,
+        CandidateAbbreviateLength = AbbreviateLength
+    };
+
+    private List<string> ApplyThemeFile(ThemeFile theme)
+    {
+        var warnings = new List<string>();
+
+        if (!string.IsNullOrWhiteSpace(theme.ColorScheme))
+        {
+            if (ColorSchemes.Any(x => x.Id == theme.ColorScheme))
+                SelectedColorSchemeId = theme.ColorScheme;
+            else
+                warnings.Add($"配色方案 {theme.ColorScheme} 未安装");
+        }
+
+        SelectedDarkColorSchemeId = string.IsNullOrWhiteSpace(theme.ColorSchemeDark) ||
+                                    DarkColorSchemes.Any(x => x.Id == theme.ColorSchemeDark)
+            ? theme.ColorSchemeDark
+            : "";
+
+        SelectedDirection = theme.Horizontal
+            ? "horizontal"
+            : theme.VerticalText ? "vertical_text" : "vertical";
+
+        if (!string.IsNullOrWhiteSpace(theme.FontFace))
+            FontFace = theme.FontFace;
+        if (theme.FontPoint > 0)
+            FontPoint = theme.FontPoint;
+
+        if (!string.IsNullOrWhiteSpace(theme.LabelFontFace))
+            LabelFontFace = theme.LabelFontFace;
+        if (theme.LabelFontPoint > 0)
+            LabelFontPoint = theme.LabelFontPoint;
+
+        if (!string.IsNullOrWhiteSpace(theme.CommentFontFace))
+            CommentFontFace = theme.CommentFontFace;
+        if (theme.CommentFontPoint > 0)
+            CommentFontPoint = theme.CommentFontPoint;
+
+        InlinePreedit = theme.InlinePreedit;
+        if (PreeditTypes.Any(x => x.Value == theme.PreeditType))
+            SelectedPreeditType = theme.PreeditType;
+
+        CornerRadius = Math.Max(0, theme.CornerRadius);
+        BorderWidth = Math.Max(0, theme.BorderWidth);
+        MarginX = theme.MarginX;
+        MarginY = theme.MarginY;
+        Spacing = theme.Spacing;
+        CandidateSpacing = Math.Max(0, theme.CandidateSpacing);
+        HilitePadding = Math.Max(0, theme.HilitePadding);
+        ShadowRadius = Math.Max(0, theme.ShadowRadius);
+        ShadowOffsetX = theme.ShadowOffsetX;
+        ShadowOffsetY = theme.ShadowOffsetY;
+
+        if (theme.MaxHeight > 0)
+            MaxHeight = theme.MaxHeight;
+        if (theme.MinWidth > 0)
+            MinWidth = theme.MinWidth;
+
+        AbbreviateLength = Math.Max(0, theme.CandidateAbbreviateLength);
+
+        MarkDirty();
+        RefreshPreview();
+        return warnings;
     }
 
     private void ApplyThemePreset(ThemePreset? preset)

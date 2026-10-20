@@ -1,0 +1,180 @@
+<UserControl x:Class="WeaselStudio.Views.FuzzyPinyinView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Grid Margin="0,0,0,16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Text="模糊音会增加候选量和 CPU 占用，只勾选真正需要的组合。"
+                       Style="{StaticResource HintText}"
+                       VerticalAlignment="Center" />
+
+            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                <Border Background="#FEF3C7"
+                        CornerRadius="9"
+                        Padding="8,3"
+                        Margin="0,0,10,0"
+                        VerticalAlignment="Center"
+                        Visibility="{Binding IsDirty, Converter={StaticResource BoolToVisibility}}">
+                    <TextBlock Text="未保存" Foreground="#B45309" FontSize="11" />
+                </Border>
+                <Button Content="重新加载"
+                        Style="{StaticResource SecondaryButton}"
+                        Command="{Binding ReloadCommand}" />
+                <Button Content="全选"
+                        Style="{StaticResource SecondaryButton}"
+                        Command="{Binding SelectAllCommand}"
+                        Margin="8,0,0,0" />
+                <Button Content="清空"
+                        Style="{StaticResource SecondaryButton}"
+                        Command="{Binding ClearAllCommand}"
+                        Margin="8,0,0,0" />
+                <Button Content="打开方案补丁"
+                        Style="{StaticResource SecondaryButton}"
+                        Command="{Binding OpenCustomFileCommand}"
+                        Margin="8,0,0,0" />
+                <Button Content="保存"
+                        Style="{StaticResource SecondaryButton}"
+                        Command="{Binding SaveCommand}"
+                        Margin="8,0,0,0" />
+                <Button Content="保存并部署"
+                        Style="{StaticResource PrimaryButton}"
+                        Command="{Binding SaveAndDeployCommand}"
+                        Margin="8,0,0,0" />
+            </StackPanel>
+        </Grid>
+
+        <ScrollViewer Grid.Row="1"
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled">
+            <StackPanel Margin="0,0,4,24">
+                <Border Style="{StaticResource CardStyle}">
+                    <StackPanel>
+                        <TextBlock Text="当前方案" Style="{StaticResource SectionTitleText}" />
+                        <ComboBox ItemsSource="{Binding Schemas}"
+                                  DisplayMemberPath="DisplayName"
+                                  SelectedItem="{Binding SelectedSchema, Mode=TwoWay}"
+                                  MinHeight="34" />
+                        <TextBlock Text="全拼方案效果最好；双拼、五笔等方案请先备份再测试。"
+                                   Style="{StaticResource HintText}"
+                                   Margin="0,8,0,0" />
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource CardStyle}">
+                    <StackPanel>
+                        <TextBlock Text="模糊音组合" Style="{StaticResource SectionTitleText}" />
+
+                        <ItemsControl ItemsSource="{Binding Groups}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Margin="0,0,0,16">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <StackPanel>
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="{Binding Name}"
+                                                           FontSize="13"
+                                                           FontWeight="SemiBold"
+                                                           Foreground="{StaticResource TextBrush}" />
+                                                <Border Background="#E0F2FE"
+                                                        CornerRadius="8"
+                                                        Padding="7,2"
+                                                        Margin="8,0,0,0"
+                                                        VerticalAlignment="Center"
+                                                        Visibility="{Binding IsBuiltIn, Converter={StaticResource BoolToVisibility}}">
+                                                    <TextBlock Text="方案自带"
+                                                               Foreground="#0369A1"
+                                                               FontSize="10" />
+                                                </Border>
+                                            </StackPanel>
+                                            <TextBlock Text="{Binding Description}"
+                                                       Style="{StaticResource HintText}"
+                                                       Margin="0,3,0,0" />
+                                            <TextBlock Text="{Binding StateText}"
+                                                       Style="{StaticResource HintText}"
+                                                       Margin="0,2,0,0" />
+                                        </StackPanel>
+
+                                        <CheckBox Grid.Column="1"
+                                                  Style="{StaticResource ToggleSwitch}"
+                                                  IsChecked="{Binding IsEnabled, Mode=TwoWay}"
+                                                  IsEnabled="{Binding CanToggle}"
+                                                  VerticalAlignment="Center" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <TextBlock Text="该方案没有找到 speller/algebra，模糊音不适用。">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock" BasedOn="{StaticResource HintText}">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding CanEdit}" Value="False">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource CardStyle}">
+                    <StackPanel>
+                        <TextBlock Text="规则统计" Style="{StaticResource SectionTitleText}" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="{Binding BaseRuleCount}" FontSize="22" FontWeight="SemiBold" />
+                                <TextBlock Text="方案基础规则" Style="{StaticResource HintText}" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="{Binding CustomRuleCount}" FontSize="22" FontWeight="SemiBold" />
+                                <TextBlock Text="自定义文件现有" Style="{StaticResource HintText}" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="{Binding TotalRuleCount}" FontSize="22" FontWeight="SemiBold" />
+                                <TextBlock Text="保存后总规则" Style="{StaticResource HintText}" />
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource CardStyle}"
+                        Background="#FFF7ED"
+                        BorderBrush="#FED7AA">
+                    <StackPanel>
+                        <TextBlock Text="性能提醒"
+                                   FontSize="14"
+                                   FontWeight="SemiBold"
+                                   Foreground="#9A3412" />
+                        <TextBlock Text="每多一组模糊规则，候选生成会多一批派生编码。如果感觉候选变慢，优先取消不常用的组合，并把每页候选数降到 6 以下。"
+                                   Style="{StaticResource HintText}"
+                                   Margin="0,6,0,0" />
+                    </StackPanel>
+                </Border>
+
+                <TextBlock Text="{Binding StatusMessage}"
+                           Style="{StaticResource HintText}"
+                           Margin="0,4,0,0" />
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

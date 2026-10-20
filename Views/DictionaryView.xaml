@@ -1,0 +1,113 @@
+<UserControl x:Class="WeaselStudio.Views.DictionaryView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Grid Margin="0,0,0,16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Text="词典操作会短暂停止算法服务；导入/恢复前建议先备份。"
+                       Style="{StaticResource HintText}"
+                       VerticalAlignment="Center" />
+
+            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                <Button Content="刷新"
+                        Style="{StaticResource SecondaryButton}"
+                        Command="{Binding RefreshCommand}" />
+                <Button Content="备份"
+                        Style="{StaticResource SecondaryButton}"
+                        Command="{Binding BackupCommand}"
+                        IsEnabled="{Binding CanRun}"
+                        Margin="8,0,0,0" />
+                <Button Content="导出"
+                        Style="{StaticResource SecondaryButton}"
+                        Command="{Binding ExportCommand}"
+                        IsEnabled="{Binding CanRun}"
+                        Margin="8,0,0,0" />
+                <Button Content="导入"
+                        Style="{StaticResource SecondaryButton}"
+                        Command="{Binding ImportCommand}"
+                        IsEnabled="{Binding CanRun}"
+                        Margin="8,0,0,0" />
+                <Button Content="恢复快照"
+                        Style="{StaticResource SecondaryButton}"
+                        Command="{Binding RestoreCommand}"
+                        IsEnabled="{Binding CanRun}"
+                        Margin="8,0,0,0" />
+                <Button Content="打开同步目录"
+                        Style="{StaticResource PrimaryButton}"
+                        Command="{Binding OpenSyncFolderCommand}"
+                        Margin="8,0,0,0" />
+            </StackPanel>
+        </Grid>
+
+        <Border Grid.Row="1"
+                Style="{StaticResource CardStyle}"
+                Background="#EFF6FF"
+                BorderBrush="#BFDBFE"
+                Visibility="{Binding CanRun, Converter={StaticResource InverseBoolToVisibility}}">
+            <StackPanel>
+                <TextBlock Text="测试模式"
+                           FontSize="15"
+                           FontWeight="SemiBold"
+                           Foreground="#1D4ED8" />
+                <TextBlock Text="当前使用自定义用户目录。词典操作会作用于系统小狼毫，因此已禁用；请用正常模式打开。"
+                           Style="{StaticResource HintText}"
+                           Margin="0,6,0,0" />
+            </StackPanel>
+        </Border>
+
+        <Border Grid.Row="2" Style="{StaticResource CardStyle}">
+            <StackPanel>
+                <TextBlock Text="用户词典" Style="{StaticResource SectionTitleText}" />
+                <ComboBox ItemsSource="{Binding Dictionaries}"
+                          SelectedItem="{Binding SelectedDictionary, Mode=TwoWay}"
+                          MinHeight="34" />
+                <TextBlock Text="备份会生成到 Rime 同步目录；导出/导入使用文本快照。"
+                           Style="{StaticResource HintText}"
+                           Margin="0,8,0,0" />
+                <TextBlock Text="{Binding SyncDirectory}"
+                           Style="{StaticResource HintText}"
+                           Margin="0,4,0,0"
+                           TextTrimming="CharacterEllipsis"
+                           ToolTip="{Binding SyncDirectory}" />
+            </StackPanel>
+        </Border>
+
+        <Border Grid.Row="3" Style="{StaticResource CardStyle}">
+            <StackPanel>
+                <TextBlock Text="说明" Style="{StaticResource SectionTitleText}" />
+                <TextBlock Text="• 备份：调用 WeaselDeployer /dict backup，生成快照到同步目录。"
+                           Style="{StaticResource HintText}"
+                           Margin="0,0,0,5" />
+                <TextBlock Text="• 导出：把用户词典导出成文本文件，适合迁移或查看。"
+                           Style="{StaticResource HintText}"
+                           Margin="0,0,0,5" />
+                <TextBlock Text="• 导入：把文本词条合并/导入到用户词典，会修改现有数据。"
+                           Style="{StaticResource HintText}"
+                           Margin="0,0,0,5" />
+                <TextBlock Text="• 恢复快照：用备份文件覆盖对应的用户词典。"
+                           Style="{StaticResource HintText}" />
+            </StackPanel>
+        </Border>
+
+        <StackPanel Grid.Row="4" Margin="0,4,0,0">
+            <ProgressBar Height="4"
+                         IsIndeterminate="True"
+                         Margin="0,0,0,8"
+                         Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibility}}" />
+            <TextBlock Text="{Binding StatusMessage}"
+                       Style="{StaticResource HintText}" />
+        </StackPanel>
+    </Grid>
+</UserControl>

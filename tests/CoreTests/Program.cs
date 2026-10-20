@@ -212,6 +212,85 @@ try
     Check("phrase comment preserved", phraseText.StartsWith("# header", StringComparison.Ordinal));
     Check("phrase tab format", phraseText.Contains("你好\tnihao", StringComparison.Ordinal));
 
+    // --- 0.3.0: fuzzy pinyin, isolated from the live config ---
+    var fuzzyDir = Path.Combine(temp, "fuzzy");
+    Directory.CreateDirectory(fuzzyDir);
+
+    foreach (var name in new[] { "rime_mint.schema.yaml", "default.yaml", "default.custom.yaml" })
+    {
+        var source = Path.Combine(config.UserDataDir, name);
+        if (File.Exists(source))
+            File.Copy(source, Path.Combine(fuzzyDir, name));
+    }
+
+    var fuzzyEnvironment = new RimeEnvironment
+    {
+        UserDataDir = fuzzyDir,
+        WeaselRoot = environment.WeaselRoot,
+        DeployerPath = environment.DeployerPath,
+        Version = environment.Version,
+        IsCustomUserDir = true
+    };
+    var fuzzyConfig = new ConfigService(fuzzyEnvironment);
+    var fuzzyService = new FuzzyPinyinService(fuzzyConfig);
+    var fuzzySchema = fuzzyConfig.LoadSchemas().FirstOrDefault(x => x.Id == "rime_mint");
+    Check("fuzzy schema loaded", fuzzySchema is not null);
+
+    if (fuzzySchema is not null)
+    {
+        var baseRules = fuzzyService.LoadBaseAlgebra(fuzzySchema);
+        Check("fuzzy base algebra", baseRules.Count > 10, $"{baseRules.Count} rules");
+
+        var groups = FuzzyPinyinService.CreateGroups().ToList();
+        Check("fuzzy groups", groups.Count == 5);
+
+        var zh = groups.First(x => x.Id == "zh_z");
+        var nasal = groups.First(x => x.Id == "en_eng");
+        zh.IsEnabled = true;
+        nasal.IsEnabled = true;
+
+        var merged = fuzzyService.MergeRules(
+            baseRules, Array.Empty<string>(), groups);
+        Check("fuzzy rules merged",
+            merged.Contains("derive/^([zcs])h/$1/") &&
+            merged.Contains("derive/([aei])n$/$1ng/"));
+        Check("fuzzy base preserved", merged.Contains(baseRules[0]));
+
+        fuzzyService.SaveAlgebra(fuzzySchema, merged);
+        var fuzzyCustomPath = fuzzyService.GetCustomPath(fuzzySchema);
+        var fuzzyCustomText = File.ReadAllText(fuzzyCustomPath);
+        Check("fuzzy custom parses", YamlConfig.ParseMap(fuzzyCustomText) is not null);
+
+        var reloaded = fuzzyService.LoadCustomAlgebra(fuzzySchema);
+        Check("fuzzy algebra saved", reloaded.Count == merged.Count,
+            $"{reloaded.Count}/{merged.Count}");
+        Check("fuzzy algebra has rules",
+            reloaded.Contains("derive/^([zcs])h/$1/"));
+
+        foreach (var group in groups)
+            group.IsEnabled = false;
+
+        var cleared = fuzzyService.MergeRules(baseRules, reloaded, groups);
+        Check("fuzzy clear removes rules",
+            !cleared.Contains("derive/^([zcs])h/$1/"));
+        Check("fuzzy clear keeps base",
+            cleared.Count == baseRules.Distinct().Count(),
+            $"{cleared.Count}/{baseRules.Count} raw/{baseRules.Distinct().Count()} distinct");
+
+        fuzzyService.SaveAlgebra(fuzzySchema, cleared);
+        var clearedReloaded = fuzzyService.LoadCustomAlgebra(fuzzySchema);
+        Check("fuzzy clear saved",
+            clearedReloaded.Count == cleared.Count,
+            $"{clearedReloaded.Count}/{cleared.Count}");
+    }
+
+    // --- dictionary enumeration (read-only) ---
+    var dictionaryService = new DictionaryService(config);
+    var dictionaries = dictionaryService.GetUserDictionaries();
+    Check("dictionary list", dictionaries.Count > 0, string.Join(", ", dictionaries));
+    Check("dictionary sync dir",
+        dictionaryService.GetSyncDirectory().Contains("sync", StringComparison.OrdinalIgnoreCase));
+
     var liveAfter = liveFiles.Select(FileHash).ToArray();
     Check("live config untouched", liveBefore.SequenceEqual(liveAfter));
 }
