@@ -1,4 +1,4 @@
-# 小狼毫内置剪贴板面板 v0.8
+# 小狼毫内置剪贴板面板 v0.9
 
 这是**修改版 Weasel**，不是 Weasel Studio 设置中心。目标是把剪贴板历史做进输入法本身，而不是做独立托盘程序。
 
@@ -6,17 +6,19 @@
 
 - 源码：https://github.com/baipiao5555/weasel/tree/clipboard-panel
 - 基于 `rime/weasel` master `82b50c9`
-- 提交：`bce2422`
-- 版本：`0.17.4.113.bce2422`
+- 提交：`37e33ac`
+- 版本：`0.17.4.118.37e33ac`
 - 修改文件：`RimeWithWeasel/RimeWithWeasel.cpp`、`include/RimeWithWeasel.h`
 - 构建：GitHub Actions MSBuild（CI lint 与编译均通过）
-- 已确认 `WeaselServer.pdb` 包含 `_ChangeClipboardPage`、`_IsClipboardHotkeyKey`、`SaveClipboardEntries`、`_RefreshClipboardPanel` 等面板符号
+- 已确认 `WeaselServer.pdb` 包含 `_CaptureClipboardImage`、`_SetClipboardImage`、`_CleanupClipboardImages`、`HashFile` 等符号
 
 ## 功能
 
-- WeaselServer 监听系统剪贴板，保存最近 100 条文本和文件列表，单条文本上限 256 KB
+- WeaselServer 监听系统剪贴板，保存最近 100 条文本、文件列表和图片，单条文本上限 256 KB
 - 复制文件后显示 `[文件] 文件名 等 N 个文件`；`Enter` 写回 `CF_HDROP` 并发送 `Ctrl+V`，支持文件粘贴的应用可以直接粘贴文件
-- 文件列表最多 100 个、路径总长 32K 字符；文件条目和文本共用历史、收藏、搜索、翻页、删除
+- 复制截图/图片后显示 `[图片 宽×高]`；`Enter` 写回 `CF_DIB` 并发送 `Ctrl+V`
+- 图片以 PNG 存在 `%APPDATA%\Rime\weasel-clipboard-images`，按内容哈希去重；最多保留 10 张，单边最大 4096，单张 PNG 最大 24 MB
+- 文件列表最多 100 个、路径总长 32K 字符；文本、文件、图片共用历史、收藏、搜索、翻页、删除
 - `Ctrl+Shift+V` 打开候选窗剪贴板面板；面板打开时再按一次可关闭
 - `Up` / `Down` 选择，`Enter` 写回剪贴板并发送 `Ctrl+V`
 - 每页默认 8 条，`PageUp` / `PageDown` 循环翻页，`Home` / `End` 跳到首尾页
@@ -59,7 +61,7 @@ patch:
 ## 安装
 
 1. 先备份 `%APPDATA%\Rime`（至少备份 `.custom.yaml`、`custom_phrase.txt`）。
-2. 从 [Releases](https://github.com/baipiao5555/weasel-studio/releases/tag/weasel-panel-v0.8) 下载 `weasel-*.exe` 安装包。v0.7、v0.6、v0.5、v0.4 和 v0.2 保留作为回退版本；v0.3 的鼠标回调存在跨线程 UI 访问风险，不建议使用。
+2. 从 [Releases](https://github.com/baipiao5555/weasel-studio/releases/tag/weasel-panel-v0.9) 下载 `weasel-*.exe` 安装包。v0.8、v0.7、v0.6、v0.5、v0.4 和 v0.2 保留作为回退版本；v0.3 的鼠标回调存在跨线程 UI 访问风险，不建议使用。
 3. 运行安装包。它会替换 Weasel 的二进制和 IME DLL，保留用户配置。
 4. 重启 WeaselServer 或重新登录。
 5. 在任意文本框里按 `Ctrl+Shift+V` 测试。
@@ -68,8 +70,11 @@ patch:
 
 ## 已知限制
 
-- 当前支持**文本和文件列表**；图片、分类和独立大面板 UI 还没做。
+- 当前支持**文本、文件列表和图片**；分类和独立大面板 UI 还没做。
 - 文件粘贴依赖目标应用接受 `CF_HDROP`；只记录路径，文件移动或删除后粘贴会失败。
+- 图片没有缩略图预览，候选窗只显示 `[图片 宽×高]`。
+- 图片粘贴统一转成 `CF_DIB`；透明通道可能丢失，GIF 动画和部分特殊位图格式可能不支持。
+- 图片最多 10 张、单边最大 4096、单张 PNG 最大 24 MB；超出会被跳过。
 - 复用的是候选窗，不是 fcitx5-android 那种独立面板。
 - 搜索只支持 ASCII；中文搜索需要完整的文本输入/composition，当前未做。
 - 粘贴通过 `SendInput` 发送 `Ctrl+V`；管理员权限应用可能拒绝。
@@ -85,7 +90,7 @@ patch:
 
 - 出问题的应用名称（浏览器、微信、Office、终端等）
 - 是否能稳定复现
-- `Ctrl+Shift+V` 没反应、面板不显示、翻页错位、粘贴失败，分别说明
+- `Ctrl+Shift+V` 没反应、面板不显示、翻页错位、文本/文件/图片粘贴失败，分别说明
 - 如有崩溃，附上 `%APPDATA%\Rime` 下最新的日志
 
 ## 下一阶段
