@@ -1,4 +1,4 @@
-# 小狼毫内置剪贴板面板 v0.5
+# 小狼毫内置剪贴板面板 v0.6
 
 这是**修改版 Weasel**，不是 Weasel Studio 设置中心。目标是把剪贴板历史做进输入法本身，而不是做独立托盘程序。
 
@@ -6,11 +6,11 @@
 
 - 源码：https://github.com/baipiao5555/weasel/tree/clipboard-panel
 - 基于 `rime/weasel` master `82b50c9`
-- 提交：`3e7277c`
-- 版本：`0.17.4.105.3e7277c`
+- 提交：`4568059`
+- 版本：`0.17.4.107.4568059`
 - 修改文件：`RimeWithWeasel/RimeWithWeasel.cpp`、`include/RimeWithWeasel.h`
 - 构建：GitHub Actions MSBuild（CI lint 与编译均通过）
-- 已确认 `WeaselServer.pdb` 包含 `_ShowClipboardPanel`、`ReadClipboardFiles`、`WriteClipboardFiles`、`ClipboardEntryDisplay` 等面板符号
+- 已确认 `WeaselServer.pdb` 包含 `_LoadClipboardSettings`、`ParseClipboardHotkey`、`ReadClipboardFiles`、`WriteClipboardFiles` 等面板符号
 
 ## 功能
 
@@ -19,9 +19,10 @@
 - 文件列表最多 100 个、路径总长 32K 字符；文件条目和文本共用历史、收藏、搜索、翻页、删除
 - `Ctrl+Shift+V` 打开候选窗剪贴板面板；面板打开时再按一次可关闭
 - `Up` / `Down` 选择，`Enter` 写回剪贴板并发送 `Ctrl+V`
-- 每页 8 条，`PageUp` / `PageDown` 翻页
+- 每页默认 8 条，`PageUp` / `PageDown` 循环翻页，`Home` / `End` 跳到首尾页
 - `1`–`8` 直接粘贴当前页对应条目
-- `Delete` 删除当前条目
+- `Delete` 删除当前条目；`Ctrl+Shift+Delete` 连按两次清空全部历史和收藏，中间按其他键取消
+- `Ctrl+U` 清空搜索词
 - `Tab` 只看收藏，`Ctrl+D` 收藏/取消收藏；收藏项排在最前并带 `★ 收藏` 标记
 - 输入 ASCII 字符过滤，`Backspace` 退格；查询为空时再按 `Backspace` 关闭
 - `Esc` 关闭
@@ -34,10 +35,30 @@
 - 历史：`%APPDATA%\Rime\weasel-clipboard-history.dat`
 - 收藏：`%APPDATA%\Rime\weasel-clipboard-favorites.dat`
 
+## 配置
+
+在 `%APPDATA%\Rime\weasel.custom.yaml` 里添加（没有就新建）：
+
+```yaml
+patch:
+  clipboard/enabled: true
+  clipboard/history_limit: 100
+  clipboard/page_size: 8
+  clipboard/max_text_length: 262144
+  clipboard/hotkey: "Control+Shift+V"
+```
+
+- `enabled`：`false` 时完全不启动剪贴板监听
+- `history_limit`：1–1000，默认 100
+- `page_size`：1–8，默认 8；数字键只能覆盖 1–8
+- `max_text_length`：1024–4194304，默认 262144
+- `hotkey`：至少包含一个修饰键；支持 `Ctrl`/`Control`、`Shift`、`Alt`，加一个字母、数字或 `Space`/`Tab`/`Enter`
+- 改完运行“重新部署”或重启 WeaselServer 生效
+
 ## 安装
 
 1. 先备份 `%APPDATA%\Rime`（至少备份 `.custom.yaml`、`custom_phrase.txt`）。
-2. 从 [Releases](https://github.com/baipiao5555/weasel-studio/releases/tag/weasel-panel-v0.5) 下载 `weasel-*.exe` 安装包。v0.4 和 v0.2 保留作为回退版本；v0.3 的鼠标回调存在跨线程 UI 访问风险，不建议使用。
+2. 从 [Releases](https://github.com/baipiao5555/weasel-studio/releases/tag/weasel-panel-v0.6) 下载 `weasel-*.exe` 安装包。v0.5、v0.4 和 v0.2 保留作为回退版本；v0.3 的鼠标回调存在跨线程 UI 访问风险，不建议使用。
 3. 运行安装包。它会替换 Weasel 的二进制和 IME DLL，保留用户配置。
 4. 重启 WeaselServer 或重新登录。
 5. 在任意文本框里按 `Ctrl+Shift+V` 测试。
@@ -51,7 +72,9 @@
 - 复用的是候选窗，不是 fcitx5-android 那种独立面板。
 - 搜索只支持 ASCII；中文搜索需要完整的文本输入/composition，当前未做。
 - 粘贴通过 `SendInput` 发送 `Ctrl+V`；管理员权限应用可能拒绝。
-- `Ctrl+Shift+V` 可能与部分应用的“粘贴为纯文本”快捷键冲突。
+- `Ctrl+Shift+V` 可能与部分应用的“粘贴为纯文本”快捷键冲突；可在 `clipboard/hotkey` 里改。
+- `Ctrl+Shift+Delete` 清空历史时会同时清空收藏。
+- 配置目前只能手改 `weasel.custom.yaml`，Weasel Studio 还没有对应的设置页。
 - 历史仍是明文存储；敏感过滤依赖应用主动设置 Windows 剪贴板排除标记，未标记的内容仍会被记录。
 - 安装包未签名，SmartScreen 可能提示“未知发布者”。
 - 这是实验性 Weasel 分支，不是官方 Weasel；没有在本机替换正在使用的 Weasel 做运行时验证。
