@@ -2,12 +2,12 @@
 
 一个面向 Windows 小狼毫（Rime / Weasel）的图形化配置面板。目标是让常用设置不再需要手改 YAML，同时保留 Rime 原生的 `*.custom.yaml` 补丁机制。
 
-当前版本（0.5.0）是一个可运行的 MVP，已在本机 Weasel 0.17.4 + .NET 10 上验证。
+当前版本（0.6.0）是一个可运行的 MVP，已在本机 Weasel 0.17.4 + .NET 10 上验证。
 
 ## 下载与安装
 
-- **安装版**：从 [Releases](https://github.com/baipiao5555/weasel-studio/releases/latest) 下载 `WeaselStudio-Setup-0.5.0.exe`。按当前用户安装，不需要管理员权限；默认安装到 `%LOCALAPPDATA%\Programs\WeaselStudio`，会创建开始菜单快捷方式，桌面快捷方式可选。卸载不会删除 `%APPDATA%\Rime` 里的配置和备份。
-- **便携版**：下载 `WeaselStudio-Portable-0.5.0.exe`，双击直接运行，不写安装目录和注册表。
+- **安装版**：从 [Releases](https://github.com/baipiao5555/weasel-studio/releases/latest) 下载 `WeaselStudio-Setup-0.6.0.exe`。按当前用户安装，不需要管理员权限；默认安装到 `%LOCALAPPDATA%\Programs\WeaselStudio`，会创建开始菜单快捷方式，桌面快捷方式可选。卸载不会删除 `%APPDATA%\Rime` 里的配置和备份。
+- **便携版**：下载 `WeaselStudio-Portable-0.6.0.exe`，双击直接运行，不写安装目录和注册表。
 - **内置剪贴板面板（实验）**：这是修改版 Weasel，把剪贴板历史做进候选窗；见 [weasel-panel.md](weasel-panel.md)，下载 [weasel-panel-v0.10](https://github.com/baipiao5555/weasel-studio/releases/tag/weasel-panel-v0.10)。
 - 系统要求：Windows 10 / 11 x64。
 
@@ -18,6 +18,7 @@
 - **输入习惯**：按方案编辑 switches（中英文、简繁、全角/半角、标点、Emoji 等）和每页候选数。
 - **模糊音**：按方案启用平翘舌、鼻边音、唇齿音、前后鼻音、ian/iang 等常见组合；保存会重建 `speller/algebra` 列表并保留原有规则。
 - **自定义短语**：用表格维护 `custom_phrase.txt`，支持短语/编码/权重，保存前自动备份。
+- **词典中心**：一键下载雾凇拼音、五笔 86、粤拼；只允许 HTTPS 和固定主机，校验 SHA-256，拒绝本机/私有地址，安装前备份并自动部署。
 - **内置剪贴板**：配置输入法自带剪贴板面板的开关、历史上限、每页条数、文本上限和快捷键，写入 `weasel.custom.yaml` 的 `clipboard/*` 节点。
 - **剪贴板同步**：用 SyncClipboard 协议同步文本剪贴板；支持托盘常驻、开机启动、DPAPI 保存密码、ETag/哈希防回环。默认拒绝本机/私有地址，局域网服务器需勾选“允许私有地址”。
 - **外观与候选窗**：内置 Windows 11 浅色/深色、微信输入法风、极简代码风等主题预设；也可细调配色、方向、字体、圆角、边框、边距、间距、阴影，右侧带实时候选窗预览；支持主题 JSON 导入/导出。
@@ -84,7 +85,7 @@ $env:NSIS_EXE = "C:\path\to\makensis.exe"
 installer\build-installer.bat
 ```
 
-输出 `publish\WeaselStudio-Setup-0.5.0.exe`。安装脚本在 `installer\WeaselStudio.nsi`，按用户安装、不需要管理员权限。
+输出 `publish\WeaselStudio-Setup-0.6.0.exe`。安装脚本在 `installer\WeaselStudio.nsi`，按用户安装、不需要管理员权限。
 
 ## 测试
 

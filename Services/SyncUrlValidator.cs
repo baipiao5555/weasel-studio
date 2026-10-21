@@ -26,7 +26,7 @@ public static class SyncUrlValidator
         if (string.IsNullOrWhiteSpace(uri.Host))
             throw new InvalidOperationException("服务器地址缺少主机名。");
 
-        if (!allowPrivateAddresses && IsLocalOrPrivate(uri.Host))
+        if (!allowPrivateAddresses && IsLocalOrPrivateHost(uri.Host))
         {
             throw new InvalidOperationException(
                 "默认拒绝本机、环回和私有地址。SyncClipboard 如果在局域网/本机，请勾选“允许私有地址”。");
@@ -52,7 +52,7 @@ public static class SyncUrlValidator
         return builder.Uri.ToString();
     }
 
-    private static bool IsLocalOrPrivate(string host)
+    public static bool IsLocalOrPrivateHost(string host)
     {
         var normalized = host.Trim('[', ']');
 
@@ -63,12 +63,12 @@ public static class SyncUrlValidator
         }
 
         if (IPAddress.TryParse(normalized, out var literal))
-            return IsPrivate(literal);
+            return IsPrivateAddress(literal);
 
         try
         {
             var addresses = Dns.GetHostAddresses(normalized);
-            return addresses.Length > 0 && addresses.Any(IsPrivate);
+            return addresses.Length > 0 && addresses.Any(IsPrivateAddress);
         }
         catch
         {
@@ -77,7 +77,7 @@ public static class SyncUrlValidator
         }
     }
 
-    private static bool IsPrivate(IPAddress address)
+    public static bool IsPrivateAddress(IPAddress address)
     {
         if (address.IsIPv4MappedToIPv6)
             address = address.MapToIPv4();

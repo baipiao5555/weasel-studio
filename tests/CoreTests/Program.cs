@@ -1,4 +1,5 @@
 using System.IO;
+using System.IO.Compression;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -65,6 +66,103 @@ Check("load style font", !string.IsNullOrWhiteSpace(style.FontFace), style.FontF
 var schemes = config.LoadColorSchemes();
 Check("load color schemes", schemes.Count > 0, $"{schemes.Count} schemes");
 Check("selected scheme exists", schemes.Any(x => x.Id == style.ColorScheme), style.ColorScheme);
+
+// --- dictionary catalog and download guard ---
+var dictionaryPackages = DictionaryCatalog.Packages;
+Check("dictionary catalog has packages", dictionaryPackages.Count >= 3,
+    $"{dictionaryPackages.Count} packages");
+Check("dictionary catalog metadata", dictionaryPackages.All(package =>
+        package.Url.StartsWith("https://", StringComparison.OrdinalIgnoreCase) &&
+        package.Sha256.Length == 64 &&
+        package.SizeBytes > 0 &&
+        package.SchemaIds.Count > 0));
+Check("dictionary catalog ids unique",
+    dictionaryPackages.Select(x => x.Id).Distinct(StringComparer.OrdinalIgnoreCase).Count() ==
+    dictionaryPackages.Count);
+Check("dictionary guard rejects http",
+    Throws(() => RemotePackageGuard.ValidateAsync(
+        new Uri("http://github.com/x"), CancellationToken.None).GetAwaiter().GetResult()));
+Check("dictionary guard rejects localhost",
+    Throws(() => RemotePackageGuard.ValidateAsync(
+        new Uri("https://localhost/x"), CancellationToken.None).GetAwaiter().GetResult()));
+Check("dictionary guard rejects private ip",
+    Throws(() => RemotePackageGuard.ValidateAsync(
+        new Uri("https://192.168.1.1/x"), CancellationToken.None).GetAwaiter().GetResult()));
+Check("dictionary guard rejects unlisted host",
+    Throws(() => RemotePackageGuard.ValidateAsync(
+        new Uri("https://example.com/x"), CancellationToken.None).GetAwaiter().GetResult()));
+
+var dictTemp = Path.Combine(
+    Path.GetTempPath(), "weasel-studio-dict-test-" + Guid.NewGuid().ToString("N"));
+Directory.CreateDirectory(dictTemp);
+try
+{
+    var zipPath = Path.Combine(dictTemp, "test-package.zip");
+    using (var zip = ZipFile.Open(zipPath, ZipArchiveMode.Create))
+    {
+        void AddEntry(string name, string content)
+        {
+            var entry = zip.CreateEntry(name);
+            using var writer = new StreamWriter(entry.Open());
+            writer.Write(content);
+        }
+
+        AddEntry("pack-root/test_schema.schema.yaml",
+            "schema:\n  schema_id: test_schema\n  name: Test\n");
+        AddEntry("pack-root/test_schema.dict.yaml",
+            "---\nname: test_schema\n...\n");
+        AddEntry("pack-root/default.yaml", "patch: should-not-copy\n");
+        AddEntry("pack-root/custom_phrase.txt", "not copied\n");
+        AddEntry("pack-root/LICENSE", "MIT\n");
+    }
+
+    var zipHash = Convert.ToHexString(
+        SHA256.HashData(File.ReadAllBytes(zipPath))).ToLowerInvariant();
+    var testPackage = new DictionaryPackage(
+        "test",
+        "Test Dictionary",
+        "test",
+        "https://github.com/example/test",
+        zipHash,
+        new FileInfo(zipPath).Length,
+        "MIT",
+        "https://github.com/example/test",
+        new[] { "test_schema" });
+    var dictEnvironment = new RimeEnvironment
+    {
+        UserDataDir = dictTemp,
+        IsCustomUserDir = true
+    };
+    var dictConfig = new ConfigService(dictEnvironment);
+    var dictInstaller = new DictionaryInstallerService(dictConfig);
+    var install = dictInstaller.InstallFromArchiveAsync(
+        testPackage, zipPath, CancellationToken.None).GetAwaiter().GetResult();
+
+    Check("dictionary install files",
+        File.Exists(Path.Combine(dictTemp, "test_schema.schema.yaml")) &&
+        File.Exists(Path.Combine(dictTemp, "test_schema.dict.yaml")));
+    Check("dictionary install excludes user config",
+        !File.Exists(Path.Combine(dictTemp, "default.yaml")) &&
+        !File.Exists(Path.Combine(dictTemp, "custom_phrase.txt")));
+    Check("dictionary install metadata",
+        File.Exists(Path.Combine(dictTemp, "dict-packs", "test", "LICENSE")));
+    Check("dictionary install schema list",
+        File.ReadAllText(Path.Combine(dictTemp, "default.custom.yaml"))
+            .Contains("test_schema", StringComparison.Ordinal));
+    Check("dictionary install result",
+        install.FileCount >= 2 && install.Schemas.Contains("test_schema"));
+}
+finally
+{
+    try
+    {
+        Directory.Delete(dictTemp, recursive: true);
+    }
+    catch
+    {
+        // Best-effort temp cleanup.
+    }
+}
 
 var temp = Path.Combine(Path.GetTempPath(), "weasel-studio-test-" + Guid.NewGuid().ToString("N"));
 Directory.CreateDirectory(temp);

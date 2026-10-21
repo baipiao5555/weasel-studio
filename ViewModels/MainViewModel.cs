@@ -30,6 +30,7 @@ public sealed class MainViewModel : ObservableObject
         FuzzyPinyin = new FuzzyPinyinViewModel(_config, DeployAndReportAsync, SetStatus);
         Phrases = new PhrasesViewModel(_config, DeployAndReportAsync, SetStatus);
         DictionaryManagement = new DictionaryViewModel(_config, SetStatus);
+        DictionaryStore = new DictionaryStoreViewModel(_config, DeployAndReportAsync, SetStatus);
         ClipboardPanel = new ClipboardPanelViewModel(_config, DeployAndReportAsync, SetStatus);
         ClipboardSync = new ClipboardSyncViewModel(syncService, syncSettingsStore, SetStatus);
         Appearance = new AppearanceViewModel(_config, DeployAndReportAsync, SetStatus);
@@ -61,6 +62,7 @@ public sealed class MainViewModel : ObservableObject
     public FuzzyPinyinViewModel FuzzyPinyin { get; }
     public PhrasesViewModel Phrases { get; }
     public DictionaryViewModel DictionaryManagement { get; }
+    public DictionaryStoreViewModel DictionaryStore { get; }
     public ClipboardPanelViewModel ClipboardPanel { get; }
     public ClipboardSyncViewModel ClipboardSync { get; }
     public AppearanceViewModel Appearance { get; }
@@ -120,6 +122,7 @@ public sealed class MainViewModel : ObservableObject
             "fuzzy" => "fuzzy",
             "phrases" => "phrases",
             "dictionary" => "dictionary",
+            "dictstore" => "dictstore",
             "panel" => "panel",
             "clipboard" => "clipboard",
             "appearance" => "appearance",
@@ -134,6 +137,7 @@ public sealed class MainViewModel : ObservableObject
             "fuzzy" => FuzzyPinyin,
             "phrases" => Phrases,
             "dictionary" => DictionaryManagement,
+            "dictstore" => DictionaryStore,
             "panel" => ClipboardPanel,
             "clipboard" => ClipboardSync,
             "appearance" => Appearance,
@@ -152,6 +156,7 @@ public sealed class MainViewModel : ObservableObject
             "fuzzy" => "模糊音",
             "phrases" => "自定义短语",
             "dictionary" => "词典管理",
+            "dictstore" => "词典中心",
             "panel" => "内置剪贴板",
             "clipboard" => "剪贴板同步",
             "appearance" => "外观与候选窗",
@@ -165,6 +170,7 @@ public sealed class MainViewModel : ObservableObject
             "fuzzy" => "按方案启用平翘舌、鼻边音、前后鼻音等模糊规则；保存会重建 algebra 列表。",
             "phrases" => "用表格维护 custom_phrase.txt，不用记 Tab 分隔和权重格式。",
             "dictionary" => "备份、导出、导入和恢复用户词典；操作会短暂停止算法服务。",
+            "dictstore" => "一键下载并安装雾凇拼音、五笔和粤拼，自动校验、备份并部署。",
             "panel" => "配置输入法内置剪贴板面板的开关、历史上限、每页条数、文本上限和快捷键。",
             "clipboard" => "用 SyncClipboard 协议同步文本剪贴板；密码用 DPAPI 加密保存。",
             "appearance" => "修改会写入 weasel.custom.yaml 的 patch 节点，原有注释会保留。",
