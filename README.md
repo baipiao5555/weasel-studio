@@ -6,7 +6,8 @@
 
 ## 下载与安装
 
-- **安装版**：从 [Releases](https://github.com/baipiao5555/weasel-studio/releases/latest) 下载 `WeaselStudio-Setup-0.6.0.exe`。按当前用户安装，不需要管理员权限；默认安装到 `%LOCALAPPDATA%\Programs\WeaselStudio`，会创建开始菜单快捷方式，桌面快捷方式可选。卸载不会删除 `%APPDATA%\Rime` 里的配置和备份。
+- **一体化安装包（推荐）**：下载 `WeaselStudio-AllInOne-0.6.1.exe`，一次安装改版小狼毫（含内置剪贴板、默认词库）和 Weasel Studio。需要管理员权限；小狼毫按官方方式安装，Weasel Studio 装到 `%PROGRAMFILES%\WeaselStudio`，同时创建开始菜单快捷方式，桌面快捷方式可选。
+- **安装版（仅设置中心）**：从 [Releases](https://github.com/baipiao5555/weasel-studio/releases/latest) 下载 `WeaselStudio-Setup-0.6.0.exe`。按当前用户安装，不需要管理员权限；默认安装到 `%LOCALAPPDATA%\Programs\WeaselStudio`，会创建开始菜单快捷方式，桌面快捷方式可选。卸载不会删除 `%APPDATA%\Rime` 里的配置和备份。
 - **便携版**：下载 `WeaselStudio-Portable-0.6.0.exe`，双击直接运行，不写安装目录和注册表。
 - **内置剪贴板面板（实验）**：这是修改版 Weasel，把剪贴板历史做进候选窗；见 [weasel-panel.md](weasel-panel.md)，下载 [weasel-panel-v0.10](https://github.com/baipiao5555/weasel-studio/releases/tag/weasel-panel-v0.10)。
 - 系统要求：Windows 10 / 11 x64。
